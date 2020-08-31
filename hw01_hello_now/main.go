@@ -18,5 +18,6 @@ func main() {
 
 	currentTime := time.Now()
 
-	fmt.Printf("current time: %s\nexact time: %s\n", currentTime, exactTime)
+	fmt.Printf("current time: %s\n", currentTime.Round(0))
+	fmt.Printf("exact time: %s\n", exactTime.Round(0))
 }
