@@ -36,7 +36,7 @@ func TestUnpackWithRandomString(t *testing.T) {
 
 	actual, err := Unpack(str.String())
 
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.Equal(t, expected.String(), actual)
 }
 
@@ -104,15 +104,23 @@ func TestUnpackWithEscape(t *testing.T) {
 		require.Equal(t, tst.expected, result)
 	}
 }
-func TestUnpackWithNonLatinRunes(t *testing.T) {
+func TestUnpackWithDifferentRunes(t *testing.T) {
 	for _, tst := range [...]test{
 		{
-			input:    `п4字2z2ф0р1\\u3ß1`,
-			expected: `пппп字字zzр\uuuß`,
+			input:    `п 4字2 -! z2Ф0Р1\\u3ß1`,
+			expected: `п    字字 -! zzР\uuuß`,
 		},
 		{
 			input:    `\10汉0\20ß0`,
 			expected: "",
+		},
+		{
+			input:    "\t2\n0\r1",
+			expected: "\t\t\r",
+		},
+		{
+			input:    `й.\\4,2`,
+			expected: `й.\\\\,,`,
 		},
 		{
 			input:    `a\字`,
@@ -130,17 +138,16 @@ func TestUnpackWithNonLatinRunes(t *testing.T) {
 			err:      ErrInvalidString,
 		},
 		{
-			input:    `й\\4`,
-			expected: `й\\\\`,
-		},
-		{
 			input:    `字р\`,
 			expected: "",
 			err:      ErrInvalidString,
 		},
 	} {
-		result, err := Unpack(tst.input)
-		require.Equal(t, tst.err, err)
-		require.Equal(t, tst.expected, result)
+		tst := tst
+		t.Run(tst.input, func(t *testing.T) {
+			result, err := Unpack(tst.input)
+			require.Equal(t, tst.err, err)
+			require.Equal(t, tst.expected, result)
+		})
 	}
 }
