@@ -49,3 +49,90 @@ func TestList(t *testing.T) {
 		require.Equal(t, []int{70, 80, 60, 40, 10, 30, 50}, elems)
 	})
 }
+
+func TestFront(t *testing.T) {
+	l := createListWithTwoValues(1, 2)
+	require.Equal(t, 1, l.Front().Value)
+}
+
+func TestBack(t *testing.T) {
+	l := createListWithTwoValues(1, 2)
+	require.Equal(t, 2, l.Back().Value)
+}
+
+func TestPushBack(t *testing.T) {
+	l := &list{}
+
+	l.PushBack(1)
+	require.Equal(t, 1, l.Head.Value)
+	require.Equal(t, 1, l.Tail.Value)
+
+	l.PushBack(2)
+	require.Equal(t, 2, l.Tail.Value)
+	require.Equal(t, 1, l.Head.Value)
+}
+
+func TestPushFront(t *testing.T) {
+	l := &list{}
+
+	l.PushFront(1)
+	require.Equal(t, 1, l.Head.Value)
+	require.Equal(t, 1, l.Tail.Value)
+
+	l.PushFront(2)
+	require.Equal(t, 2, l.Head.Value)
+	require.Equal(t, 1, l.Tail.Value)
+}
+
+func TestRemove(t *testing.T) {
+	l := createListWithTwoValues(1, 2)
+
+	l.Remove(l.Tail)
+	require.Nil(t, l.Head.Next)
+	require.Same(t, l.Head, l.Tail)
+
+	node := l.Head
+
+	l.Remove(l.Head)
+	require.Nil(t, l.Head)
+	require.Nil(t, l.Tail)
+
+	t.Run("remove removed node", func(t *testing.T) {
+		l.Remove(node)
+		require.Nil(t, l.Head)
+		require.Nil(t, l.Tail)
+	})
+}
+
+func TestMoveToFront(t *testing.T) {
+	t.Run("tail node move to front", func(t *testing.T) {
+		l := createListWithTwoValues(1, 2)
+		l.MoveToFront(l.Tail)
+
+		require.Equal(t, 2, l.Head.Value)
+		require.Equal(t, 1, l.Tail.Value)
+	})
+
+	t.Run("nil node move to front", func(t *testing.T) {
+		l := createListWithTwoValues(1, 2)
+		l.MoveToFront(nil)
+
+		require.Equal(t, 1, l.Head.Value)
+		require.Equal(t, 2, l.Tail.Value)
+	})
+}
+
+func createListWithTwoValues(headVal, tailVal int) *list {
+	l := &list{}
+
+	l.Head = &listItem{
+		Value: headVal,
+	}
+	l.Tail = &listItem{
+		Value: tailVal,
+		Prev:  l.Head,
+	}
+	l.Head.Next = l.Tail
+
+	return l
+}
