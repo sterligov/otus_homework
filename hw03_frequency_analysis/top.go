@@ -15,11 +15,13 @@ func MapWordFrequency(str string) map[string]int {
 	})
 
 	for _, w := range words {
-		if w != "-" {
-			w = strings.ToLower(w)
-			w = strings.Trim(w, "'")
-			wordFrequency[w]++
+		if w == "-" {
+			continue
 		}
+
+		w = strings.ToLower(w)
+		w = strings.Trim(w, "'")
+		wordFrequency[w]++
 	}
 
 	return wordFrequency
@@ -27,7 +29,7 @@ func MapWordFrequency(str string) map[string]int {
 
 // MapFrequencyWords convert words map where key is word and value is frequecy
 // to map where key is frequency and value is slice of words and return it
-// also return max frequncy.
+// also return max frequency.
 func MapFrequencyWords(words map[string]int) (map[int][]string, int) {
 	frequencyWords, maxFrequency := make(map[int][]string), 0
 
