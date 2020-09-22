@@ -66,4 +66,80 @@ func TestRun(t *testing.T) {
 		require.Equal(t, runTasksCount, int32(tasksCount), "not all tasks were completed")
 		require.LessOrEqual(t, int64(elapsedTime), int64(sumTime/2), "tasks were run sequentially?")
 	})
+
+	t.Run("tasks without error limit", func(t *testing.T) {
+		tasksCount := 20
+		tasks := make([]Task, 0, tasksCount)
+
+		for i := 0; i < tasksCount; i++ {
+			err := fmt.Errorf("error from task %d", i)
+			tasks = append(tasks, func() error {
+				return err
+			})
+		}
+
+		workersCount := 10
+		maxErrorsCount := 0
+
+		result := Run(tasks, workersCount, maxErrorsCount)
+
+		require.Nil(t, result)
+	})
+
+	t.Run("tasks without goroutine limit", func(t *testing.T) {
+		tasksCount := 10
+		tasks := make([]Task, 0, tasksCount)
+
+		var runTasksCount int32
+		done := make([]chan struct{}, tasksCount)
+
+		for i := 0; i < tasksCount; i++ {
+			done[i] = make(chan struct{})
+			ch := done[i]
+			tasks = append(tasks, func() error {
+				atomic.AddInt32(&runTasksCount, 1)
+				ch <- struct{}{}
+
+				return nil
+			})
+		}
+
+		workersCount := 0
+		maxErrorsCount := 0
+
+		go Run(tasks, workersCount, maxErrorsCount)
+
+		time.Sleep(1 * time.Second)
+
+		require.Equal(t, tasksCount, int(atomic.LoadInt32(&runTasksCount)), "task were run without limit, but it seems there is a limit")
+
+		for i := 0; i < tasksCount; i++ {
+			<-done[i]
+		}
+	})
+
+	t.Run("errors in last functions", func(t *testing.T) {
+		tasksCount := 10
+		tasks := make([]Task, 0, tasksCount)
+
+		for i := 0; i < tasksCount/2; i++ {
+			tasks = append(tasks, func() error {
+				return nil
+			})
+		}
+
+		for i := tasksCount / 2; i < tasksCount; i++ {
+			err := fmt.Errorf("error from task %d", i)
+			tasks = append(tasks, func() error {
+				return err
+			})
+		}
+
+		workersCount := tasksCount / 2
+		maxErrorsCount := tasksCount / 2
+
+		result := Run(tasks, workersCount, maxErrorsCount)
+
+		require.Error(t, result)
+	})
 }
