@@ -3,51 +3,79 @@ package hw05_parallel_execution //nolint:golint,stylecheck
 import (
 	"errors"
 	"sync"
-	"sync/atomic"
 )
 
 var ErrErrorsLimitExceeded = errors.New("errors limit exceeded")
 
 type Task func() error
 
-// Run starts tasks in maxGoroutine goroutines and stops its work when receiving maxError errors from tasks.
-func Run(tasks []Task, maxGoroutine, maxError int) error {
-	if maxGoroutine <= 0 {
-		maxGoroutine = len(tasks)
+// Run starts tasks in nWorkers goroutines and stops its work when receiving nErrors errors from tasks.
+func Run(tasks []Task, nWorkers, nErrors int) error {
+	if nWorkers <= 0 {
+		nWorkers = len(tasks)
 	}
-	if maxError <= 0 {
-		maxError = len(tasks) + 1
+	if nErrors <= 0 {
+		nErrors = len(tasks) + 1
 	}
 
-	var (
-		errCounter int32
-		wg         sync.WaitGroup
-	)
-	sem := make(chan struct{}, maxGoroutine)
+	errors := make(chan error)
+	taskCh := make(chan Task)
+	done := make(chan struct{})
 
-	for i := 0; i < len(tasks); i++ {
-		sem <- struct{}{}
-		if int(atomic.LoadInt32(&errCounter)) >= maxError {
-			break
-		}
+	wg := &sync.WaitGroup{}
+	wg.Add(nWorkers)
 
-		wg.Add(1)
-		go func(task Task) {
-			defer func() {
-				wg.Done()
-				<-sem
-			}()
+	for i := 0; i < nWorkers; i++ {
+		go worker(done, taskCh, errors, wg)
+	}
 
-			if err := task(); err != nil {
-				atomic.AddInt32(&errCounter, 1)
+	go runTasks(done, taskCh, tasks)
+
+	go func() {
+		wg.Wait()
+		close(errors)
+	}()
+
+	var errCounter int
+
+	for err := range errors {
+		if err != nil {
+			errCounter++
+			if errCounter == nErrors {
+				close(done)
 			}
-		}(tasks[i])
+		}
 	}
-	wg.Wait()
 
-	if int(errCounter) >= maxError {
+	if errCounter >= nErrors {
 		return ErrErrorsLimitExceeded
 	}
 
 	return nil
+}
+
+func runTasks(done <-chan struct{}, taskCh chan<- Task, tasks []Task) {
+	defer close(taskCh)
+
+	for _, task := range tasks {
+		select {
+		case <-done:
+			return
+		default:
+			taskCh <- task
+		}
+	}
+}
+
+func worker(done <-chan struct{}, taskCh <-chan Task, errors chan<- error, wg *sync.WaitGroup) {
+	defer wg.Done()
+
+	for task := range taskCh {
+		select {
+		case <-done:
+			return
+		default:
+			errors <- task()
+		}
+	}
 }
