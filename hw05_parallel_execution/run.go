@@ -61,8 +61,7 @@ func runTasks(done <-chan struct{}, taskCh chan<- Task, tasks []Task) {
 		select {
 		case <-done:
 			return
-		default:
-			taskCh <- task
+		case taskCh <- task:
 		}
 	}
 }
