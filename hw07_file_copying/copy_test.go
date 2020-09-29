@@ -124,17 +124,16 @@ func TestCopy(t *testing.T) {
 	})
 }
 
-func generateRandomFile(size int) (string, string, error) {
-	var rerr error
-
+func generateRandomFile(size int) (filename string, data string, rerr error) {
 	var builder strings.Builder
+
 	for i := 0; i < size; i++ {
 		builder.WriteByte('a' + byte(rand.Intn(26)))
 	}
 
-	out, err := ioutil.TempFile("./", "")
-	if err != nil {
-		return "", "", err
+	out, rerr := ioutil.TempFile("./", "")
+	if rerr != nil {
+		return
 	}
 	defer func() {
 		err := out.Close()

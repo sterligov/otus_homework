@@ -50,33 +50,35 @@ func TestLoadbarLine(t *testing.T) {
 }
 
 func TestBarWriter(t *testing.T) {
-	t.Run("write data", func(t *testing.T) {
-		buf := &bytes.Buffer{}
-		bar := NewBarWriter(buf, &loadbarMock{})
+	tests := []struct {
+		data string
+		err  error
+	}{
+		{
+			data: "abc",
+			err:  nil,
+		},
+		{
+			data: "",
+			err:  nil,
+		},
+	}
 
-		dataToWrite := "abc"
-		n, err := bar.Write([]byte(dataToWrite))
+	for _, tst := range tests {
+		tst := tst
+		testName := fmt.Sprintf("data: %s", tst.data)
+		t.Run(testName, func(t *testing.T) {
+			buf := &bytes.Buffer{}
+			bar := NewBarWriter(buf, &loadbarMock{})
 
-		require.NoError(t, err)
-		require.Equal(t, len(dataToWrite), n)
-		require.Equal(t, dataToWrite, buf.String())
-	})
+			_, err := bar.Write([]byte(tst.data))
 
-	t.Run("write empty data", func(t *testing.T) {
-		buf := &bytes.Buffer{}
-		bar := NewBarWriter(buf, &loadbarMock{})
-
-		dataToWrite := ""
-		n, err := bar.Write([]byte(dataToWrite))
-
-		require.NoError(t, err)
-		require.Equal(t, len(dataToWrite), n)
-		require.Equal(t, dataToWrite, buf.String())
-	})
+			require.Equal(t, tst.err, err)
+			require.Equal(t, tst.data, buf.String())
+		})
+	}
 }
 
-type loadbarMock struct {
-	progress int
-}
+type loadbarMock struct{}
 
 func (l *loadbarMock) Update(int) {}
