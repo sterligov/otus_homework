@@ -4,7 +4,11 @@ package hw10_program_optimization //nolint:golint,stylecheck
 
 import (
 	"bytes"
+	"fmt"
 	"testing"
+
+	"github.com/fixme_my_friend/hw10_program_optimization/mock"
+	"github.com/golang/mock/gomock"
 
 	"github.com/stretchr/testify/require"
 )
@@ -35,5 +39,41 @@ func TestGetDomainStat(t *testing.T) {
 		result, err := GetDomainStat(bytes.NewBufferString(data), "unknown")
 		require.NoError(t, err)
 		require.Equal(t, DomainStat{}, result)
+	})
+
+	t.Run("invalid email", func(t *testing.T) {
+		data := `{"Email":"invalid_email.com"}`
+		actual, err := GetDomainStat(bytes.NewBufferString(data), "com")
+
+		require.Empty(t, actual)
+		require.Error(t, err)
+	})
+
+	t.Run("invalid json", func(t *testing.T) {
+		data := `{"Email":"`
+		actual, err := GetDomainStat(bytes.NewBufferString(data), "com")
+
+		require.Empty(t, actual)
+		require.Error(t, err)
+	})
+
+	t.Run("empty data", func(t *testing.T) {
+		actual, err := GetDomainStat(bytes.NewBufferString(""), "com")
+
+		require.Empty(t, actual)
+		require.Nil(t, err)
+	})
+
+	t.Run("reading error", func(t *testing.T) {
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		m := mock.NewMockReader(ctrl)
+		m.EXPECT().Read(gomock.Any()).Return(0, fmt.Errorf("error"))
+
+		actual, err := GetDomainStat(m, "com")
+
+		require.Empty(t, actual)
+		require.Error(t, err)
 	})
 }
