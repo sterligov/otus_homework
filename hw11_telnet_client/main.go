@@ -31,7 +31,7 @@ func main() {
 	}
 	defer func() {
 		if err := client.Close(); err != nil {
-			log.Fatalln(err)
+			log.Println(err)
 		}
 	}()
 
