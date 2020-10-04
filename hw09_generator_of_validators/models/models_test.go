@@ -60,8 +60,21 @@ func TestUserValidation(t *testing.T) {
 	})
 
 	t.Run("phones slice", func(t *testing.T) {
-		// Write me :)
-		t.Fail()
+		u := goodUser
+		u.Phones = []UserPhone{
+			"11111111111",
+			"2222222222",
+			"33333333333",
+		}
+		errs, err := u.Validate()
+		require.Nil(t, err)
+		requireOneFieldErr(t, errs, "Phones")
+
+		u.Phones = []UserPhone{
+			"11111111111",
+			"33333333333",
+		}
+		requireNoValidationErrors(t, u)
 	})
 
 	t.Run("many errors", func(t *testing.T) {
@@ -78,6 +91,14 @@ func TestUserValidation(t *testing.T) {
 			fields = append(fields, e.Field)
 		}
 		require.ElementsMatch(t, fields, []string{"Age", "Email", "Role"})
+	})
+
+	t.Run("invalid regexp", func(t *testing.T) {
+		reg := InvalidRegexp{}
+
+		errs, err := reg.Validate()
+		require.Empty(t, errs)
+		require.Error(t, err)
 	})
 }
 
