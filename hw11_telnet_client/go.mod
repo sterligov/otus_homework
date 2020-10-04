@@ -1,4 +1,4 @@
-module github.com/sterligov/otush_homework/hw11_telnet_client
+module github.com/sterligov/otus_homework/hw11_telnet_client
 
 go 1.15
 
