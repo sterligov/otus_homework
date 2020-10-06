@@ -2,7 +2,6 @@ package hw10_program_optimization //nolint:golint,stylecheck
 
 import (
 	"bufio"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -10,13 +9,7 @@ import (
 )
 
 type User struct {
-	ID       int    `json:"-"`
-	Name     string `json:"-"`
-	Username string `json:"-"`
-	Email    string `json:"email"`
-	Phone    string `json:"-"`
-	Password string `json:"-"`
-	Address  string `json:"-"`
+	Email string
 }
 
 type DomainStat map[string]int
@@ -24,8 +17,9 @@ type DomainStat map[string]int
 func GetDomainStat(r io.Reader, domain string) (DomainStat, error) {
 	reader := bufio.NewReader(r)
 	domStat := make(DomainStat)
-	domain = "." + domain
 	u := &User{}
+
+	domain = "." + domain
 
 	for {
 		line, _, err := reader.ReadLine()
@@ -35,7 +29,7 @@ func GetDomainStat(r io.Reader, domain string) (DomainStat, error) {
 			return nil, fmt.Errorf("reading error: %w", err)
 		}
 
-		if err := json.Unmarshal(line, u); err != nil {
+		if err := u.UnmarshalJSON(line); err != nil {
 			return nil, fmt.Errorf(`string(%s) unmarshal error: %w`, line, err)
 		}
 
