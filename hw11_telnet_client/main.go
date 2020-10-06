@@ -46,6 +46,7 @@ func main() {
 	go func() {
 		if err := client.Receive(); err != nil {
 			cancel <- err
+			return
 		}
 		log.Println("...Connection was closed by peer")
 		cancel <- nil
@@ -54,6 +55,7 @@ func main() {
 	go func() {
 		if err := client.Send(); err != nil {
 			cancel <- err
+			return
 		}
 		log.Println("...EOF")
 		cancel <- nil
