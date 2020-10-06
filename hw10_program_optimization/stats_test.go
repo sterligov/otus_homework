@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/fixme_my_friend/hw10_program_optimization/mock"
 	"github.com/golang/mock/gomock"
+	"github.com/sterligov/otus_homework/hw10_program_optimization/mock"
 
 	"github.com/stretchr/testify/require"
 )
