@@ -1,5 +1,16 @@
 package main
 
+import (
+	"log"
+	"os"
+)
+
 func main() {
-	// Place your code here
+	if len(os.Args) < 2 {
+		log.Fatalln("expected filename")
+	}
+
+	if err := GenerateValidators(os.Args[1]); err != nil {
+		log.Fatalln(err)
+	}
 }

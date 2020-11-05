@@ -1,6 +1,4 @@
-//go:generate go-validate $GOFILE
-
-package models
+package testdata
 
 type (
 	NestedNestedNestedRole string
@@ -41,8 +39,4 @@ type Token struct {
 type Response struct {
 	Code int    `validate:"in:200,404,500"`
 	Body string `json:"omitempty"`
-}
-
-type InvalidRegexp struct {
-	Str string `validate:"regexp:^($"`
 }
