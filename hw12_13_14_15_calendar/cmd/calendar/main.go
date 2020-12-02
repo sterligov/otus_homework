@@ -56,7 +56,6 @@ func main() {
 		if err := server.Start(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			logger.Errorf("http server start failed: %s", err)
 			exitCode = 1
-			return
 		}
 	}()
 
@@ -72,6 +71,5 @@ func main() {
 	if err := server.Stop(ctx); err != nil && !errors.Is(err, http.ErrServerClosed) {
 		logger.Errorf("http server stop failed: %s", err)
 		exitCode = 1
-		return
 	}
 }
