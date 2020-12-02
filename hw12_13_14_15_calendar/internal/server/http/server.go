@@ -1,26 +1,54 @@
 package internalhttp
 
-import "context"
+import (
+	"context"
+	"net/http"
+	"time"
+
+	"github.com/sterligov/otus_homework/hw12_13_14_15_calendar/internal/config"
+	"github.com/sterligov/otus_homework/hw12_13_14_15_calendar/internal/logger"
+)
 
 type Server struct {
-	// TODO
+	httpServer http.Server
 }
 
-type Application interface {
-	// TODO
-}
+func NewServer(cfg *config.Config, h http.Handler) (*Server, error) {
+	rt, err := time.ParseDuration(cfg.HTTP.ReadTimeout)
+	if err != nil {
+		return nil, err
+	}
 
-func NewServer(app Application) *Server {
-	return &Server{}
+	wt, err := time.ParseDuration(cfg.HTTP.ReadTimeout)
+	if err != nil {
+		return nil, err
+	}
+
+	ht, err := time.ParseDuration(cfg.HTTP.HandlerTimeout)
+	if err != nil {
+		return nil, err
+	}
+
+	server := &Server{
+		httpServer: http.Server{
+			Addr:         cfg.HTTP.Addr,
+			ReadTimeout:  rt,
+			WriteTimeout: wt,
+			Handler:      http.TimeoutHandler(h, ht, "request timeout"),
+		},
+	}
+
+	return server, nil
 }
 
 func (s *Server) Start() error {
-	// TODO
+	logger.Infof("Start server...")
+
+	return s.httpServer.ListenAndServe()
 }
 
-func (s *Server) Stop() error {
-	ctx, cancel := context.WithTimeout(context.Background(), shutdownTimeout)
-	// TODO
-}
+func (s *Server) Stop(ctx context.Context) error {
+	logger.Infof("Stop server...")
 
-// TODO
+	return s.httpServer.Shutdown(ctx)
+}

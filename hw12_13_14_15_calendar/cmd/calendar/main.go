@@ -1,45 +1,77 @@
 package main
 
 import (
+	"context"
+	"errors"
 	"flag"
+	"log"
+	"net/http"
 	"os"
 	"os/signal"
+	"syscall"
+	"time"
 
-	"github.com/fixme_my_friend/hw12_13_14_15_calendar/internal/app"
-	"github.com/fixme_my_friend/hw12_13_14_15_calendar/internal/logger"
-	internalhttp "github.com/fixme_my_friend/hw12_13_14_15_calendar/internal/server/http"
-	memorystorage "github.com/fixme_my_friend/hw12_13_14_15_calendar/internal/storage/memory"
+	"github.com/sterligov/otus_homework/hw12_13_14_15_calendar/internal/config"
+	"github.com/sterligov/otus_homework/hw12_13_14_15_calendar/internal/logger"
+	"github.com/sterligov/otus_homework/hw12_13_14_15_calendar/internal/logger/zap"
 )
 
 var configFile string
 
 func init() {
-	flag.StringVar(&configFile, "config", "/etc/calendar/config.toml", "Path to configuration file")
+	flag.StringVar(&configFile, "config", "/etc/calendar/config.yml", "Path to configuration file")
 }
 
 func main() {
-	config := NewConfig()
-	logg := logger.New(config.Logger.Level)
+	flag.Parse()
 
-	storage := memorystorage.New()
-	calendar := app.New(logg, storage)
+	if flag.Arg(0) == "version" {
+		printVersion()
+		return
+	}
 
-	server := internalhttp.NewServer(calendar)
+	cfg, err := config.New(configFile)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	zlog, err := zap.New(cfg)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	logger.SetGlobalLogger(zlog)
+
+	var exitCode int
+
+	server, cleanup, err := setup(cfg)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	defer func() {
+		cleanup()
+		os.Exit(exitCode)
+	}()
 
 	go func() {
-		signals := make(chan os.Signal, 1)
-		signal.Notify(signals)
-
-		<-signals
-		signal.Stop(signals)
-
-		if err := server.Stop(); err != nil {
-			logger.Error("failed to stop http server: " + err.String())
+		if err := server.Start(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			logger.Errorf("http server start failed: %s", err)
+			exitCode = 1
+			return
 		}
 	}()
 
-	if err := server.Start(); err != nil {
-		logger.Error("failed to start http server: " + err.String())
-		os.Exit(1)
+	signals := make(chan os.Signal, 1)
+	signal.Notify(signals, syscall.SIGINT)
+
+	<-signals
+	signal.Stop(signals)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	if err := server.Stop(ctx); err != nil && !errors.Is(err, http.ErrServerClosed) {
+		logger.Errorf("http server stop failed: %s", err)
+		exitCode = 1
+		return
 	}
 }
