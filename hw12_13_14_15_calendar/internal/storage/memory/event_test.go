@@ -55,8 +55,13 @@ func TestEventStorage(t *testing.T) {
 		_, err := stor.CreateEvent(ctx, e)
 		require.NoError(t, err)
 
-		err = stor.DeleteEvent(ctx, 1)
+		affected, err := stor.DeleteEvent(ctx, 1)
 		require.NoError(t, err)
+		require.Equal(t, int64(1), affected)
+
+		affected, err = stor.DeleteEvent(ctx, 1)
+		require.NoError(t, err)
+		require.Equal(t, int64(0), affected)
 	})
 
 	t.Run("update", func(t *testing.T) {
@@ -67,8 +72,9 @@ func TestEventStorage(t *testing.T) {
 		_, err := stor.CreateEvent(context.Background(), e)
 		require.NoError(t, err)
 
-		err = stor.UpdateEvent(context.Background(), e)
+		affected, err := stor.UpdateEvent(context.Background(), e)
 		require.NoError(t, err)
+		require.Equal(t, int64(1), affected)
 	})
 
 	t.Run("create two events in one date", func(t *testing.T) {
@@ -104,7 +110,7 @@ func TestEventStorage(t *testing.T) {
 		require.NoError(t, err)
 
 		e1.StartDate = e1.StartDate.Add(time.Hour).Round(0)
-		err = stor.UpdateEvent(context.Background(), e1)
+		_, err = stor.UpdateEvent(context.Background(), e1)
 		require.Equal(t, storage.ErrDateBusy, err)
 	})
 
@@ -180,13 +186,13 @@ func TestEventStorage(t *testing.T) {
 			defer wg.Done()
 
 			events[0].Title = "New Title"
-			err := stor.UpdateEvent(ctx, events[0])
+			_, err := stor.UpdateEvent(ctx, events[0])
 			require.NoError(t, err)
 		}()
 		go func() {
 			defer wg.Done()
 
-			err := stor.DeleteEvent(ctx, events[1].ID)
+			_, err := stor.DeleteEvent(ctx, events[1].ID)
 			require.NoError(t, err)
 		}()
 		wg.Wait()

@@ -48,32 +48,36 @@ func (es *EventStorage) CreateEvent(_ context.Context, event storage.Event) (sto
 	return es.lastID, nil
 }
 
-func (es *EventStorage) UpdateEvent(_ context.Context, event storage.Event) error {
+func (es *EventStorage) UpdateEvent(_ context.Context, event storage.Event) (int64, error) {
 	es.mu.Lock()
 	defer es.mu.Unlock()
 
 	if _, ok := es.bucket[event.ID]; !ok {
-		return nil
+		return 0, nil
 	}
 
 	for _, e := range es.bucket {
 		if e.ID != event.ID && e.StartDate.Equal(event.StartDate) && e.UserID == event.UserID {
-			return storage.ErrDateBusy
+			return 0, storage.ErrDateBusy
 		}
 	}
 
 	es.bucket[event.ID] = event
 
-	return nil
+	return 1, nil
 }
 
-func (es *EventStorage) DeleteEvent(_ context.Context, id storage.EventID) error {
+func (es *EventStorage) DeleteEvent(_ context.Context, id storage.EventID) (int64, error) {
 	es.mu.Lock()
 	defer es.mu.Unlock()
 
+	if _, ok := es.bucket[id]; !ok {
+		return 0, nil
+	}
+
 	delete(es.bucket, id)
 
-	return nil
+	return 1, nil
 }
 
 func (es *EventStorage) GetUserEventsByPeriod(

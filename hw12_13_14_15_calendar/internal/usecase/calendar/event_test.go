@@ -32,10 +32,10 @@ func TestEventUseCase(t *testing.T) {
 			Return(storage.EventID(1), nil)
 
 		useCase := NewEventUseCase(rep)
-		actualEvent, err := useCase.CreateEvent(ctx, e)
+		insertedID, err := useCase.CreateEvent(ctx, e)
 
 		require.NoError(t, err)
-		require.Equal(t, e, actualEvent)
+		require.Equal(t, int64(1), insertedID)
 	})
 
 	t.Run("create event error", func(t *testing.T) {
@@ -48,9 +48,10 @@ func TestEventUseCase(t *testing.T) {
 			Return(storage.EventID(0), fmt.Errorf("create error"))
 
 		useCase := NewEventUseCase(rep)
-		_, err := useCase.CreateEvent(ctx, Event{})
+		insertedID, err := useCase.CreateEvent(ctx, Event{})
 
 		require.Error(t, err)
+		require.Equal(t, int64(0), insertedID)
 	})
 
 	t.Run("get event by id", func(t *testing.T) {
@@ -93,53 +94,65 @@ func TestEventUseCase(t *testing.T) {
 	t.Run("update event", func(t *testing.T) {
 		rep := &mocks.EventRepository{}
 
+		expectedAffected := int64(1)
+
 		ctx := context.Background()
 		rep.On("UpdateEvent", ctx, storage.Event{ID: 1}).
-			Return(nil)
+			Return(expectedAffected, nil)
 
 		useCase := NewEventUseCase(rep)
-		err := useCase.UpdateEvent(ctx, 1, Event{})
+		affected, err := useCase.UpdateEvent(ctx, 1, Event{})
 
 		require.NoError(t, err)
+		require.Equal(t, expectedAffected, affected)
 	})
 
 	t.Run("update event error", func(t *testing.T) {
 		rep := &mocks.EventRepository{}
 
+		var expectedAffected int64
+
 		ctx := context.Background()
 		rep.On("UpdateEvent", ctx, storage.Event{ID: 1}).
-			Return(fmt.Errorf("error here"))
+			Return(expectedAffected, fmt.Errorf("error here"))
 
 		useCase := NewEventUseCase(rep)
-		err := useCase.UpdateEvent(ctx, 1, Event{})
+		affected, err := useCase.UpdateEvent(ctx, 1, Event{})
 
 		require.Error(t, err)
+		require.Equal(t, expectedAffected, affected)
 	})
 
 	t.Run("delete event", func(t *testing.T) {
 		rep := &mocks.EventRepository{}
 
+		expectedAffected := int64(1)
+
 		ctx := context.Background()
 		rep.On("DeleteEvent", ctx, storage.EventID(1)).
-			Return(nil)
+			Return(expectedAffected, nil)
 
 		useCase := NewEventUseCase(rep)
-		err := useCase.DeleteEvent(ctx, 1)
+		affected, err := useCase.DeleteEvent(ctx, 1)
 
 		require.NoError(t, err)
+		require.Equal(t, expectedAffected, affected)
 	})
 
 	t.Run("delete event error", func(t *testing.T) {
 		rep := &mocks.EventRepository{}
 
+		var expectedAffected int64
+
 		ctx := context.Background()
 		rep.On("DeleteEvent", ctx, storage.EventID(1)).
-			Return(fmt.Errorf("error here"))
+			Return(expectedAffected, fmt.Errorf("error here"))
 
 		useCase := NewEventUseCase(rep)
-		err := useCase.DeleteEvent(ctx, 1)
+		affected, err := useCase.DeleteEvent(ctx, 1)
 
 		require.Error(t, err)
+		require.Equal(t, expectedAffected, affected)
 	})
 
 	t.Run("get user day events", func(t *testing.T) {

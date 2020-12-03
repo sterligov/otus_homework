@@ -11,9 +11,9 @@ import (
 
 type EventUseCase interface {
 	GetEventByID(ctx context.Context, id int64) (calendar.Event, error)
-	CreateEvent(ctx context.Context, e calendar.Event) (calendar.Event, error)
-	UpdateEvent(ctx context.Context, id int64, e calendar.Event) error
-	DeleteEvent(ctx context.Context, id int64) error
+	CreateEvent(ctx context.Context, e calendar.Event) (int64, error)
+	UpdateEvent(ctx context.Context, id int64, e calendar.Event) (int64, error)
+	DeleteEvent(ctx context.Context, id int64) (int64, error)
 	GetUserDayEvents(ctx context.Context, uid int64, date time.Time) ([]calendar.Event, error)
 	GetUserWeekEvents(ctx context.Context, uid int64, date time.Time) ([]calendar.Event, error)
 	GetUserMonthEvents(ctx context.Context, uid int64, date time.Time) ([]calendar.Event, error)

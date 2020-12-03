@@ -37,17 +37,24 @@ func (_m *EventRepository) CreateEvent(ctx context.Context, event storage.Event)
 }
 
 // DeleteEvent provides a mock function with given fields: ctx, id
-func (_m *EventRepository) DeleteEvent(ctx context.Context, id storage.EventID) error {
+func (_m *EventRepository) DeleteEvent(ctx context.Context, id storage.EventID) (int64, error) {
 	ret := _m.Called(ctx, id)
 
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, storage.EventID) error); ok {
+	var r0 int64
+	if rf, ok := ret.Get(0).(func(context.Context, storage.EventID) int64); ok {
 		r0 = rf(ctx, id)
 	} else {
-		r0 = ret.Error(0)
+		r0 = ret.Get(0).(int64)
 	}
 
-	return r0
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, storage.EventID) error); ok {
+		r1 = rf(ctx, id)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // GetEventByID provides a mock function with given fields: ctx, id
@@ -95,15 +102,22 @@ func (_m *EventRepository) GetUserEventsByPeriod(ctx context.Context, uid storag
 }
 
 // UpdateEvent provides a mock function with given fields: ctx, event
-func (_m *EventRepository) UpdateEvent(ctx context.Context, event storage.Event) error {
+func (_m *EventRepository) UpdateEvent(ctx context.Context, event storage.Event) (int64, error) {
 	ret := _m.Called(ctx, event)
 
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, storage.Event) error); ok {
+	var r0 int64
+	if rf, ok := ret.Get(0).(func(context.Context, storage.Event) int64); ok {
 		r0 = rf(ctx, event)
 	} else {
-		r0 = ret.Error(0)
+		r0 = ret.Get(0).(int64)
 	}
 
-	return r0
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, storage.Event) error); ok {
+		r1 = rf(ctx, event)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }

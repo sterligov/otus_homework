@@ -84,7 +84,7 @@ INSERT INTO event(
 	return storage.EventID(lastID), nil
 }
 
-func (es *EventStorage) UpdateEvent(ctx context.Context, e storage.Event) error {
+func (es *EventStorage) UpdateEvent(ctx context.Context, e storage.Event) (int64, error) {
 	query := `
 UPDATE
 	event
@@ -98,27 +98,37 @@ SET
 WHERE
 	id = :id`
 
-	_, err := es.db.NamedExecContext(ctx, query, &e)
+	res, err := es.db.NamedExecContext(ctx, query, &e)
 	if err != nil {
 		if me, ok := err.(*mysql.MySQLError); ok && me.Number == mysqlUniqueErrNum {
-			return storage.ErrDateBusy
+			return 0, storage.ErrDateBusy
 		}
 
-		return fmt.Errorf("update event failed: %w", err)
+		return 0, fmt.Errorf("update event failed: %w", err)
 	}
 
-	return nil
+	affected, err := res.RowsAffected()
+	if err != nil {
+		return 0, fmt.Errorf("get affected rows failed: %w", err)
+	}
+
+	return affected, nil
 }
 
-func (es *EventStorage) DeleteEvent(ctx context.Context, id storage.EventID) error {
+func (es *EventStorage) DeleteEvent(ctx context.Context, id storage.EventID) (int64, error) {
 	query := `DELETE FROM event WHERE id = ?`
 
-	_, err := es.db.ExecContext(ctx, query, id)
+	res, err := es.db.ExecContext(ctx, query, id)
 	if err != nil {
-		return fmt.Errorf("delete event failed: %w", err)
+		return 0, fmt.Errorf("delete event failed: %w", err)
 	}
 
-	return nil
+	affected, err := res.RowsAffected()
+	if err != nil {
+		return 0, fmt.Errorf("get affected rows failed: %w", err)
+	}
+
+	return affected, nil
 }
 
 func (es *EventStorage) GetUserEventsByPeriod(

@@ -21,8 +21,8 @@ type Event struct {
 type EventRepository interface {
 	GetEventByID(ctx context.Context, id storage.EventID) (storage.Event, error)
 	CreateEvent(ctx context.Context, event storage.Event) (storage.EventID, error)
-	UpdateEvent(ctx context.Context, event storage.Event) error
-	DeleteEvent(ctx context.Context, id storage.EventID) error
+	UpdateEvent(ctx context.Context, event storage.Event) (int64, error)
+	DeleteEvent(ctx context.Context, id storage.EventID) (int64, error)
 	GetUserEventsByPeriod(ctx context.Context, uid storage.UserID, start, end time.Time) ([]storage.Event, error)
 }
 
@@ -45,33 +45,31 @@ func (eu *EventUseCase) GetEventByID(ctx context.Context, id int64) (Event, erro
 	return ToEvent(e), nil
 }
 
-func (eu *EventUseCase) CreateEvent(ctx context.Context, e Event) (Event, error) {
+func (eu *EventUseCase) CreateEvent(ctx context.Context, e Event) (int64, error) {
 	if e.NotificationDate.Equal(time.Time{}) {
 		e.NotificationDate = e.StartDate
 	}
 
 	insertedID, err := eu.eventRepository.CreateEvent(ctx, FromEvent(e))
 	if err != nil {
-		return Event{}, err
+		return 0, err
 	}
 
-	e.ID = int64(insertedID)
-
-	return e, nil
+	return int64(insertedID), nil
 }
 
-func (eu *EventUseCase) UpdateEvent(ctx context.Context, id int64, e Event) error {
+func (eu *EventUseCase) UpdateEvent(ctx context.Context, id int64, e Event) (int64, error) {
 	e.ID = id
 
-	err := eu.eventRepository.UpdateEvent(ctx, FromEvent(e))
+	affected, err := eu.eventRepository.UpdateEvent(ctx, FromEvent(e))
 	if err != nil {
-		return err
+		return 0, err
 	}
 
-	return nil
+	return affected, nil
 }
 
-func (eu *EventUseCase) DeleteEvent(ctx context.Context, id int64) error {
+func (eu *EventUseCase) DeleteEvent(ctx context.Context, id int64) (int64, error) {
 	return eu.eventRepository.DeleteEvent(ctx, storage.EventID(id))
 }
 
