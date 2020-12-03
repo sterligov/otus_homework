@@ -9,7 +9,6 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 
 	"github.com/sterligov/otus_homework/hw12_13_14_15_calendar/internal/config"
 	"github.com/sterligov/otus_homework/hw12_13_14_15_calendar/internal/logger"
@@ -65,7 +64,7 @@ func main() {
 	<-signals
 	signal.Stop(signals)
 
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
 	if err := server.Stop(ctx); err != nil && !errors.Is(err, http.ErrServerClosed) {
