@@ -7,9 +7,8 @@ import (
 	"time"
 
 	"github.com/jinzhu/now"
-
+	"github.com/sterligov/otus_homework/hw12_13_14_15_calendar/internal/mocks"
 	"github.com/sterligov/otus_homework/hw12_13_14_15_calendar/internal/storage"
-	"github.com/sterligov/otus_homework/hw12_13_14_15_calendar/mocks"
 	"github.com/stretchr/testify/require"
 )
 
