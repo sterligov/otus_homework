@@ -21,8 +21,8 @@ func NewEventStorage() *EventStorage {
 }
 
 func (es *EventStorage) GetEventByID(_ context.Context, id storage.EventID) (storage.Event, error) {
-	es.mu.Lock()
-	defer es.mu.Unlock()
+	es.mu.RLock()
+	defer es.mu.RUnlock()
 
 	if e, ok := es.bucket[id]; ok {
 		return e, nil
