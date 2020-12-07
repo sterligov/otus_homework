@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/sterligov/otus_homework/hw12_13_14_15_calendar/internal/logger"
+
 	"github.com/jmoiron/sqlx"
 	"github.com/sterligov/otus_homework/hw12_13_14_15_calendar/internal/config"
 )
@@ -31,5 +33,11 @@ func DatabaseProvider(cfg *config.Config) (*sqlx.DB, func(), error) {
 		return nil, func() {}, err
 	}
 
-	return db, func() { db.Close() }, nil
+	dbClose := func() {
+		if err := db.Close(); err != nil {
+			logger.Warnf("database close failed: %s", err)
+		}
+	}
+
+	return db, dbClose, nil
 }
