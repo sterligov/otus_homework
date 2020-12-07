@@ -64,10 +64,7 @@ func main() {
 	<-signals
 	signal.Stop(signals)
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	if err := server.Stop(ctx); err != nil && !errors.Is(err, http.ErrServerClosed) {
+	if err := server.Stop(context.Background()); err != nil && !errors.Is(err, http.ErrServerClosed) {
 		logger.Errorf("http server stop failed: %s", err)
 		exitCode = 1
 	}
