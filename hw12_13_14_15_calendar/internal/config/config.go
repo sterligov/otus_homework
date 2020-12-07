@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/sterligov/otus_homework/hw12_13_14_15_calendar/internal/logger"
 	yaml "gopkg.in/yaml.v2"
@@ -15,10 +16,10 @@ const (
 
 type Config struct {
 	HTTP struct {
-		Addr           string `yaml:"addr"`
-		ReadTimeout    string `yaml:"read_timeout"`
-		WriteTimeout   string `yaml:"write_timeout"`
-		HandlerTimeout string `yaml:"handler_timeout"`
+		Addr           string        `yaml:"addr"`
+		ReadTimeout    time.Duration `yaml:"read_timeout"`
+		WriteTimeout   time.Duration `yaml:"write_timeout"`
+		HandlerTimeout time.Duration `yaml:"handler_timeout"`
 	} `yaml:"server"`
 
 	Database struct {
