@@ -34,6 +34,9 @@ lint: install-lint-deps
 wire:
 	wire cmd/calendar/wire.go
 
+mocks:
+	mockery --all --dir internal --output ./internal/mocks --case underscore
+
 docker-up:
 	cd deployments && \
 	docker-compose up -d
