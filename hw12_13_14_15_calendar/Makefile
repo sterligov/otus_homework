@@ -47,4 +47,15 @@ docker-stop:
 migrations:
 	goose -dir migrations mysql "calendar_user:calendar_pass@tcp(localhost:3311)/calendar?parseTime=true" up
 
+proto-gen:
+	protoc -I${GOPATH}/pkg/mod/github.com/grpc-ecosystem/grpc-gateway/v2@v2.0.1/third_party/googleapis \
+	-I . --go_out ./internal/server/grpc/pb \
+	--go-grpc_out ./internal/server/grpc/pb \
+	api/*
+	protoc -I${GOPATH}/pkg/mod/github.com/grpc-ecosystem/grpc-gateway/v2@v2.0.1/third_party/googleapis \
+    -I . --grpc-gateway_out ./internal/server/grpc/pb \
+    --grpc-gateway_opt logtostderr=true \
+    --grpc-gateway_opt generate_unbound_methods=true \
+    api/*
+
 .PHONY: migrations build run build-img run-img version test lint
