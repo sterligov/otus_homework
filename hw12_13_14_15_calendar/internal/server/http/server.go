@@ -4,8 +4,8 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/sirupsen/logrus"
 	"github.com/sterligov/otus_homework/hw12_13_14_15_calendar/internal/config"
-	"github.com/sterligov/otus_homework/hw12_13_14_15_calendar/internal/logger"
 )
 
 type Server struct {
@@ -26,13 +26,13 @@ func NewServer(cfg *config.Config, h http.Handler) (*Server, error) {
 }
 
 func (s *Server) Start() error {
-	logger.Infof("Start server...")
+	logrus.Infof("Start http server...")
 
 	return s.httpServer.ListenAndServe()
 }
 
 func (s *Server) Stop(ctx context.Context) error {
-	logger.Infof("Stop server...")
+	logrus.Infof("Stop http server...")
 
 	return s.httpServer.Shutdown(ctx)
 }

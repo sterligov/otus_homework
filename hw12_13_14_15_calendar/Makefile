@@ -1,3 +1,5 @@
+include ./deployments/.env
+
 BIN := "./bin/calendar"
 DOCKER_IMG="calendar:develop"
 
@@ -38,24 +40,15 @@ mocks:
 	mockery --all --dir internal --output ./internal/mocks --case underscore
 
 docker-up:
-	cd deployments && \
-	docker-compose up -d
+	cd deployments && docker-compose up -d
 
 docker-stop:
-	docker-compose -f ./deployments/docker-compose.yml stop
+	cd deployments && docker-compose stop
 
 migrations:
-	goose -dir migrations mysql "calendar_user:calendar_pass@tcp(localhost:3311)/calendar?parseTime=true" up
+	goose -dir migrations mysql "${DB_USER}:${DB_PASSWORD}@tcp(${DB_HOST}:${DB_PORT})/${DB_NAME}?parseTime=true" up
 
-proto-gen:
-	protoc -I${GOPATH}/pkg/mod/github.com/grpc-ecosystem/grpc-gateway/v2@v2.0.1/third_party/googleapis \
-	-I . --go_out ./internal/server/grpc/pb \
-	--go-grpc_out ./internal/server/grpc/pb \
-	api/*
-	protoc -I${GOPATH}/pkg/mod/github.com/grpc-ecosystem/grpc-gateway/v2@v2.0.1/third_party/googleapis \
-    -I . --grpc-gateway_out ./internal/server/grpc/pb \
-    --grpc-gateway_opt logtostderr=true \
-    --grpc-gateway_opt generate_unbound_methods=true \
-    api/*
+generate:
+	go generate ./...
 
 .PHONY: migrations build run build-img run-img version test lint

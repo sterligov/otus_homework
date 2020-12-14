@@ -10,9 +10,9 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/sirupsen/logrus"
 	"github.com/sterligov/otus_homework/hw12_13_14_15_calendar/internal/config"
 	"github.com/sterligov/otus_homework/hw12_13_14_15_calendar/internal/logger"
-	"github.com/sterligov/otus_homework/hw12_13_14_15_calendar/internal/logger/zap"
 )
 
 var configFile string
@@ -29,32 +29,42 @@ func main() {
 		return
 	}
 
+	var rerr error
+	defer func() {
+		if rerr != nil {
+			log.Fatalln(rerr)
+		}
+	}()
+
 	cfg, err := config.New(configFile)
 	if err != nil {
-		log.Fatalln(err)
+		rerr = err
+		return
 	}
 
-	zlog, err := zap.New(cfg)
+	logCleanup, err := logger.InitGlobalLogger(cfg)
 	if err != nil {
-		log.Fatalln(err)
+		rerr = err
+		return
 	}
-	logger.SetGlobalLogger(zlog)
-
-	var exitCode int
+	defer logCleanup()
 
 	server, cleanup, err := setup(cfg)
 	if err != nil {
-		log.Fatalln(err)
+		rerr = err
+		return
 	}
-	defer func() {
-		cleanup()
-		os.Exit(exitCode)
+	defer cleanup()
+
+	go func() {
+		if err := server.GRPC.Start(); err != nil {
+			logrus.Warnf("grpc server start failed: %s", err)
+		}
 	}()
 
 	go func() {
-		if err := server.Start(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			logger.Errorf("http server start failed: %s", err)
-			exitCode = 1
+		if err := server.HTTP.Start(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			logrus.Warnf("http server start failed: %s", err)
 		}
 	}()
 
@@ -64,8 +74,9 @@ func main() {
 	<-signals
 	signal.Stop(signals)
 
-	if err := server.Stop(context.Background()); err != nil && !errors.Is(err, http.ErrServerClosed) {
-		logger.Errorf("http server stop failed: %s", err)
-		exitCode = 1
+	if err := server.HTTP.Stop(context.Background()); err != nil && !errors.Is(err, http.ErrServerClosed) {
+		logrus.Warnf("http server stop failed: %s", err)
 	}
+
+	server.GRPC.Stop()
 }

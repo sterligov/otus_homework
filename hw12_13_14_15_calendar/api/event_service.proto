@@ -32,10 +32,16 @@ message Affected {
   int64 affected = 1;
 }
 
+message HealthResponse {
+  string status = 1;
+}
+
 message UserPeriodEventRequest {
   int64 userID = 1;
   google.protobuf.Timestamp date = 2;
 }
+
+message Empty {}
 
 service EventService {
   rpc GetEventByID(EventID) returns (Event) {
@@ -73,6 +79,11 @@ service EventService {
   rpc GetUserMonthEvents(UserPeriodEventRequest) returns (Events) {
     option (google.api.http) = {
       get: "/events/month/{date}"
+    };
+  };
+  rpc Health(Empty) returns (HealthResponse) {
+    option (google.api.http) = {
+      get: "/health"
     };
   };
 }

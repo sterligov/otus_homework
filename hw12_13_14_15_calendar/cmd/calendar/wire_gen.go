@@ -7,6 +7,9 @@ package main
 
 import (
 	"github.com/sterligov/otus_homework/hw12_13_14_15_calendar/internal/config"
+	"github.com/sterligov/otus_homework/hw12_13_14_15_calendar/internal/server"
+	"github.com/sterligov/otus_homework/hw12_13_14_15_calendar/internal/server/grpc"
+	"github.com/sterligov/otus_homework/hw12_13_14_15_calendar/internal/server/grpc/service"
 	"github.com/sterligov/otus_homework/hw12_13_14_15_calendar/internal/server/http"
 	"github.com/sterligov/otus_homework/hw12_13_14_15_calendar/internal/storage/factory"
 	"github.com/sterligov/otus_homework/hw12_13_14_15_calendar/internal/storage/sql"
@@ -15,7 +18,7 @@ import (
 
 // Injectors from wire.go:
 
-func setup(configConfig *config.Config) (*internalhttp.Server, func(), error) {
+func setup(configConfig *config.Config) (*server.Server, func(), error) {
 	db, cleanup, err := sqlstorage.DatabaseProvider(configConfig)
 	if err != nil {
 		return nil, nil, err
@@ -26,13 +29,21 @@ func setup(configConfig *config.Config) (*internalhttp.Server, func(), error) {
 		return nil, nil, err
 	}
 	eventUseCase := calendar.NewEventUseCase(eventRepository)
-	handler := internalhttp.NewHandler(eventUseCase)
-	server, err := internalhttp.NewServer(configConfig, handler)
+	storageConnection := factory.GetStorageConnection(db)
+	eventServiceServer := service.NewEventServiceServer(eventUseCase, storageConnection)
+	grpcServer := grpc.NewServer(configConfig, eventServiceServer)
+	handler, err := internalhttp.NewHandler(configConfig)
 	if err != nil {
 		cleanup()
 		return nil, nil, err
 	}
-	return server, func() {
+	internalhttpServer, err := internalhttp.NewServer(configConfig, handler)
+	if err != nil {
+		cleanup()
+		return nil, nil, err
+	}
+	serverServer := server.NewServer(grpcServer, internalhttpServer)
+	return serverServer, func() {
 		cleanup()
 	}, nil
 }
