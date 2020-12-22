@@ -9,7 +9,7 @@ import (
 
 	"github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
-	"github.com/sterligov/otus_homework/hw12_13_14_15_calendar/internal/logger"
+	"github.com/sirupsen/logrus"
 	"github.com/sterligov/otus_homework/hw12_13_14_15_calendar/internal/storage"
 )
 
@@ -155,7 +155,7 @@ ORDER BY
 	}
 	defer func() {
 		if err := rows.Close(); err != nil {
-			logger.Errorf("rows close failed: %s", err)
+			logrus.Errorf("rows close failed: %s", err)
 		}
 	}()
 

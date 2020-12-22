@@ -10,7 +10,7 @@ services:
       MYSQL_PASSWORD: ${DB_PASSWORD}
       MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
     volumes:
-      - ./calendar/mysql/my.cnf:/etc/mysql/conf.d/my.cnf
-      - ./calendar/mysql/data:/var/lib/mysql
+      - ./mysql/my.cnf:/etc/mysql/conf.d/my.cnf
+      - ./mysql/data:/var/lib/mysql
     ports:
-      - "3311:3306"
+      - ${DB_PORT}:3306

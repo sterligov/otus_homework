@@ -3,8 +3,9 @@ package config
 import (
 	"fmt"
 	"os"
+	"time"
 
-	"github.com/sterligov/otus_homework/hw12_13_14_15_calendar/internal/logger"
+	"github.com/sirupsen/logrus"
 	yaml "gopkg.in/yaml.v2"
 )
 
@@ -15,11 +16,15 @@ const (
 
 type Config struct {
 	HTTP struct {
-		Addr           string `yaml:"addr"`
-		ReadTimeout    string `yaml:"read_timeout"`
-		WriteTimeout   string `yaml:"write_timeout"`
-		HandlerTimeout string `yaml:"handler_timeout"`
-	} `yaml:"server"`
+		Addr           string        `yaml:"addr"`
+		ReadTimeout    time.Duration `yaml:"read_timeout"`
+		WriteTimeout   time.Duration `yaml:"write_timeout"`
+		HandlerTimeout time.Duration `yaml:"handler_timeout"`
+	} `yaml:"http"`
+
+	GRPC struct {
+		Addr string `yaml:"addr"`
+	} `yaml:"grpc"`
 
 	Database struct {
 		Addr   string `yaml:"connection_addr"`
@@ -41,7 +46,7 @@ func New(cfgFilename string) (*Config, error) {
 	}
 	defer func() {
 		if err := f.Close(); err != nil {
-			logger.Warnf("config file close: %s", err)
+			logrus.Warnf("config file close: %s", err)
 		}
 	}()
 

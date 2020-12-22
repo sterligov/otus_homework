@@ -5,6 +5,7 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	"github.com/sterligov/otus_homework/hw12_13_14_15_calendar/internal/config"
+	"github.com/sterligov/otus_homework/hw12_13_14_15_calendar/internal/server/grpc/service"
 	memorystorage "github.com/sterligov/otus_homework/hw12_13_14_15_calendar/internal/storage/memory"
 	sqlstorage "github.com/sterligov/otus_homework/hw12_13_14_15_calendar/internal/storage/sql"
 	"github.com/sterligov/otus_homework/hw12_13_14_15_calendar/internal/usecase/calendar"
@@ -21,4 +22,12 @@ func CreateEventRepository(cfg *config.Config, db *sqlx.DB) (calendar.EventRepos
 	}
 
 	return nil, ErrUnexpectedStorage
+}
+
+func GetStorageConnection(db *sqlx.DB) service.StorageConnection {
+	if db == nil {
+		return dummyConnection{}
+	}
+
+	return db
 }

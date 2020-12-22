@@ -1,3 +1,5 @@
+include ./deployments/.env
+
 BIN := "./bin/calendar"
 DOCKER_IMG="calendar:develop"
 
@@ -34,14 +36,19 @@ lint: install-lint-deps
 wire:
 	wire cmd/calendar/wire.go
 
+mocks:
+	mockery --all --dir internal --output ./internal/mocks --case underscore
+
 docker-up:
-	cd deployments && \
-	docker-compose up -d
+	cd deployments && docker-compose up -d
 
 docker-stop:
-	docker-compose -f ./deployments/docker-compose.yml stop
+	cd deployments && docker-compose stop
 
 migrations:
-	goose -dir migrations mysql "calendar_user:calendar_pass@tcp(localhost:3311)/calendar?parseTime=true" up
+	goose -dir migrations mysql "${DB_USER}:${DB_PASSWORD}@tcp(${DB_HOST}:${DB_PORT})/${DB_NAME}?parseTime=true" up
+
+generate:
+	go generate ./...
 
 .PHONY: migrations build run build-img run-img version test lint

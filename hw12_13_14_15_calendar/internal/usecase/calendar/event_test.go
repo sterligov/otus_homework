@@ -8,15 +8,16 @@ import (
 
 	"github.com/jinzhu/now"
 	"github.com/sterligov/otus_homework/hw12_13_14_15_calendar/internal/mocks"
+	"github.com/sterligov/otus_homework/hw12_13_14_15_calendar/internal/model"
 	"github.com/sterligov/otus_homework/hw12_13_14_15_calendar/internal/storage"
 	"github.com/stretchr/testify/require"
 )
 
-func TestEventUseCase(t *testing.T) {
+func TestEventUseCase_CreateEvent(t *testing.T) {
 	t.Run("create event", func(t *testing.T) {
 		rep := &mocks.EventRepository{}
 
-		e := Event{
+		e := model.Event{
 			ID:               1,
 			Title:            "title",
 			Description:      "description",
@@ -26,7 +27,7 @@ func TestEventUseCase(t *testing.T) {
 			NotificationDate: time.Now(),
 		}
 		ctx := context.Background()
-		storEvent := FromEvent(e)
+		storEvent := model.FromEvent(e)
 
 		rep.On("CreateEvent", ctx, storEvent).
 			Return(storage.EventID(1), nil)
@@ -48,12 +49,14 @@ func TestEventUseCase(t *testing.T) {
 			Return(storage.EventID(0), fmt.Errorf("create error"))
 
 		useCase := NewEventUseCase(rep)
-		insertedID, err := useCase.CreateEvent(ctx, Event{})
+		insertedID, err := useCase.CreateEvent(ctx, model.Event{})
 
 		require.Error(t, err)
 		require.Equal(t, int64(0), insertedID)
 	})
+}
 
+func TestEventUseCase_GetEventByID(t *testing.T) {
 	t.Run("get event by id", func(t *testing.T) {
 		rep := &mocks.EventRepository{}
 
@@ -75,7 +78,7 @@ func TestEventUseCase(t *testing.T) {
 		actual, err := useCase.GetEventByID(ctx, 1)
 
 		require.NoError(t, err)
-		require.Equal(t, ToEvent(expected), actual)
+		require.Equal(t, model.ToEvent(expected), actual)
 	})
 
 	t.Run("get event by id error", func(t *testing.T) {
@@ -90,39 +93,9 @@ func TestEventUseCase(t *testing.T) {
 
 		require.Error(t, err)
 	})
+}
 
-	t.Run("update event", func(t *testing.T) {
-		rep := &mocks.EventRepository{}
-
-		expectedAffected := int64(1)
-
-		ctx := context.Background()
-		rep.On("UpdateEvent", ctx, storage.Event{ID: 1}).
-			Return(expectedAffected, nil)
-
-		useCase := NewEventUseCase(rep)
-		affected, err := useCase.UpdateEvent(ctx, 1, Event{})
-
-		require.NoError(t, err)
-		require.Equal(t, expectedAffected, affected)
-	})
-
-	t.Run("update event error", func(t *testing.T) {
-		rep := &mocks.EventRepository{}
-
-		var expectedAffected int64
-
-		ctx := context.Background()
-		rep.On("UpdateEvent", ctx, storage.Event{ID: 1}).
-			Return(expectedAffected, fmt.Errorf("error here"))
-
-		useCase := NewEventUseCase(rep)
-		affected, err := useCase.UpdateEvent(ctx, 1, Event{})
-
-		require.Error(t, err)
-		require.Equal(t, expectedAffected, affected)
-	})
-
+func TestEventUseCase_DeleteEvent(t *testing.T) {
 	t.Run("delete event", func(t *testing.T) {
 		rep := &mocks.EventRepository{}
 
@@ -154,7 +127,43 @@ func TestEventUseCase(t *testing.T) {
 		require.Error(t, err)
 		require.Equal(t, expectedAffected, affected)
 	})
+}
 
+func TestEventUseCase_UpdateEvent(t *testing.T) {
+	t.Run("update event", func(t *testing.T) {
+		rep := &mocks.EventRepository{}
+
+		expectedAffected := int64(1)
+
+		ctx := context.Background()
+		rep.On("UpdateEvent", ctx, storage.Event{ID: 1}).
+			Return(expectedAffected, nil)
+
+		useCase := NewEventUseCase(rep)
+		affected, err := useCase.UpdateEvent(ctx, 1, model.Event{})
+
+		require.NoError(t, err)
+		require.Equal(t, expectedAffected, affected)
+	})
+
+	t.Run("update event error", func(t *testing.T) {
+		rep := &mocks.EventRepository{}
+
+		var expectedAffected int64
+
+		ctx := context.Background()
+		rep.On("UpdateEvent", ctx, storage.Event{ID: 1}).
+			Return(expectedAffected, fmt.Errorf("error here"))
+
+		useCase := NewEventUseCase(rep)
+		affected, err := useCase.UpdateEvent(ctx, 1, model.Event{})
+
+		require.Error(t, err)
+		require.Equal(t, expectedAffected, affected)
+	})
+}
+
+func TestEventUseCase_GetUserDayEvents(t *testing.T) {
 	t.Run("get user day events", func(t *testing.T) {
 		rep := &mocks.EventRepository{}
 
@@ -182,7 +191,7 @@ func TestEventUseCase(t *testing.T) {
 		actualEvents, err := useCase.GetUserDayEvents(ctx, 1, curTime)
 
 		require.NoError(t, err)
-		require.Equal(t, ToEventSlice(storEvents), actualEvents)
+		require.Equal(t, model.ToEventSlice(storEvents), actualEvents)
 	})
 
 	t.Run("get user day events error", func(t *testing.T) {
@@ -202,7 +211,9 @@ func TestEventUseCase(t *testing.T) {
 
 		require.Error(t, err)
 	})
+}
 
+func TestEventUseCase_GetUserWeekEvents(t *testing.T) {
 	t.Run("get user week events", func(t *testing.T) {
 		rep := &mocks.EventRepository{}
 
@@ -230,7 +241,7 @@ func TestEventUseCase(t *testing.T) {
 		actualEvents, err := useCase.GetUserWeekEvents(ctx, 1, curTime)
 
 		require.NoError(t, err)
-		require.Equal(t, ToEventSlice(storEvents), actualEvents)
+		require.Equal(t, model.ToEventSlice(storEvents), actualEvents)
 	})
 
 	t.Run("get user week events error", func(t *testing.T) {
@@ -250,7 +261,9 @@ func TestEventUseCase(t *testing.T) {
 
 		require.Error(t, err)
 	})
+}
 
+func TestEventUseCase_GetUserMonthEvents(t *testing.T) {
 	t.Run("get user month events", func(t *testing.T) {
 		rep := &mocks.EventRepository{}
 
@@ -278,7 +291,7 @@ func TestEventUseCase(t *testing.T) {
 		actualEvents, err := useCase.GetUserMonthEvents(ctx, 1, curTime)
 
 		require.NoError(t, err)
-		require.Equal(t, ToEventSlice(storEvents), actualEvents)
+		require.Equal(t, model.ToEventSlice(storEvents), actualEvents)
 	})
 
 	t.Run("get user month events error", func(t *testing.T) {
@@ -298,98 +311,4 @@ func TestEventUseCase(t *testing.T) {
 
 		require.Error(t, err)
 	})
-}
-
-func TestToEvent(t *testing.T) {
-	se := storage.Event{
-		ID:               1,
-		Title:            "title",
-		Description:      "description",
-		UserID:           1,
-		StartDate:        time.Now(),
-		EndDate:          time.Now(),
-		NotificationDate: time.Now(),
-	}
-
-	expected := Event{
-		ID:               int64(se.ID),
-		Title:            se.Title,
-		Description:      se.Description,
-		UserID:           int64(se.UserID),
-		StartDate:        se.StartDate,
-		EndDate:          se.EndDate,
-		NotificationDate: se.NotificationDate,
-	}
-
-	require.Equal(t, expected, ToEvent(se))
-}
-
-func TestFromEvent(t *testing.T) {
-	e := Event{
-		ID:               1,
-		Title:            "title",
-		Description:      "description",
-		UserID:           1,
-		StartDate:        time.Now(),
-		EndDate:          time.Now(),
-		NotificationDate: time.Now(),
-	}
-
-	expected := storage.Event{
-		ID:               storage.EventID(e.ID),
-		Title:            e.Title,
-		Description:      e.Description,
-		UserID:           storage.UserID(e.UserID),
-		StartDate:        e.StartDate,
-		EndDate:          e.EndDate,
-		NotificationDate: e.NotificationDate,
-	}
-
-	require.Equal(t, expected, FromEvent(e))
-}
-
-func TestToEventSlice(t *testing.T) {
-	se := []storage.Event{
-		{
-			ID:               1,
-			Title:            "title",
-			Description:      "description",
-			UserID:           1,
-			StartDate:        time.Now(),
-			EndDate:          time.Now(),
-			NotificationDate: time.Now(),
-		},
-		{
-			ID:               2,
-			Title:            "title2",
-			Description:      "description2",
-			UserID:           2,
-			StartDate:        time.Now(),
-			EndDate:          time.Now(),
-			NotificationDate: time.Now(),
-		},
-	}
-
-	expected := []Event{
-		{
-			ID:               int64(se[0].ID),
-			Title:            se[0].Title,
-			Description:      se[0].Description,
-			UserID:           int64(se[0].UserID),
-			StartDate:        se[0].StartDate,
-			EndDate:          se[0].EndDate,
-			NotificationDate: se[0].NotificationDate,
-		},
-		{
-			ID:               int64(se[1].ID),
-			Title:            se[1].Title,
-			Description:      se[1].Description,
-			UserID:           int64(se[1].UserID),
-			StartDate:        se[1].StartDate,
-			EndDate:          se[1].EndDate,
-			NotificationDate: se[1].NotificationDate,
-		},
-	}
-
-	require.Equal(t, expected, ToEventSlice(se))
 }

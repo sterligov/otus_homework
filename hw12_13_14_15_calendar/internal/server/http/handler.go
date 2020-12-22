@@ -2,44 +2,27 @@ package internalhttp
 
 import (
 	"context"
+	"fmt"
 	"net/http"
-	"time"
 
-	"github.com/sterligov/otus_homework/hw12_13_14_15_calendar/internal/logger"
-	"github.com/sterligov/otus_homework/hw12_13_14_15_calendar/internal/usecase/calendar"
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"github.com/sterligov/otus_homework/hw12_13_14_15_calendar/internal/config"
+	"github.com/sterligov/otus_homework/hw12_13_14_15_calendar/internal/server/grpc/pb"
+	"google.golang.org/grpc"
 )
 
-type EventUseCase interface {
-	GetEventByID(ctx context.Context, id int64) (calendar.Event, error)
-	CreateEvent(ctx context.Context, e calendar.Event) (int64, error)
-	UpdateEvent(ctx context.Context, id int64, e calendar.Event) (int64, error)
-	DeleteEvent(ctx context.Context, id int64) (int64, error)
-	GetUserDayEvents(ctx context.Context, uid int64, date time.Time) ([]calendar.Event, error)
-	GetUserWeekEvents(ctx context.Context, uid int64, date time.Time) ([]calendar.Event, error)
-	GetUserMonthEvents(ctx context.Context, uid int64, date time.Time) ([]calendar.Event, error)
-}
-
-type handler struct {
-	eventUseCase EventUseCase
-}
-
-func NewHandler(eu EventUseCase) http.Handler {
-	h := handler{
-		eventUseCase: eu,
+func NewHandler(cfg *config.Config) (http.Handler, error) {
+	gw := runtime.NewServeMux()
+	opts := []grpc.DialOption{grpc.WithInsecure()}
+	err := pb.RegisterEventServiceHandlerFromEndpoint(context.Background(), gw, cfg.GRPC.Addr, opts)
+	if err != nil {
+		return nil, fmt.Errorf("register event service handler endpoint failed: %w", err)
 	}
-
-	healthHandler := HeadersMiddleware(http.HandlerFunc(h.Health))
-	healthHandler = LoggingMiddleware(healthHandler)
-	healthHandler = RecoverMiddleware(healthHandler)
 
 	mux := http.NewServeMux()
-	mux.Handle("/health", healthHandler)
+	handler := HeadersMiddleware(gw)
+	handler = LoggingMiddleware(handler)
+	mux.Handle("/", handler)
 
-	return mux
-}
-
-func (h *handler) Health(w http.ResponseWriter, _ *http.Request) {
-	if _, err := w.Write([]byte(`{"status":"alive"}`)); err != nil {
-		logger.Named("health check").Errorf("write answer error: %s", err.Error())
-	}
+	return mux, nil
 }

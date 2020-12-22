@@ -1,35 +1,53 @@
 package logger
 
-type Logger interface {
-	Infof(string, ...interface{})
-	Debugf(string, ...interface{})
-	Warnf(string, ...interface{})
-	Errorf(string, ...interface{})
-	Named(string) Logger
+import (
+	"fmt"
+	"os"
+
+	"github.com/sirupsen/logrus"
+	"github.com/sterligov/otus_homework/hw12_13_14_15_calendar/internal/config"
+)
+
+var level = map[string]logrus.Level{
+	"info":    logrus.InfoLevel,
+	"error":   logrus.ErrorLevel,
+	"warning": logrus.WarnLevel,
+	"debug":   logrus.DebugLevel,
 }
 
-var globalLogger Logger
+func InitGlobalLogger(cfg *config.Config) (func(), error) {
+	logClose := func() {}
 
-func SetGlobalLogger(l Logger) {
-	globalLogger = l
-}
+	if _, ok := level[cfg.Logger.Level]; !ok {
+		return logClose, fmt.Errorf("unexpected logger level %s", cfg.Logger.Level)
+	}
 
-func Named(name string) Logger {
-	return globalLogger.Named(name)
-}
+	var (
+		flog *os.File
+		err  error
+	)
 
-func Infof(format string, vals ...interface{}) {
-	globalLogger.Infof(format, vals...)
-}
+	switch cfg.Logger.Path {
+	case "stderr":
+		flog = os.Stderr
+	case "stdout":
+		flog = os.Stdout
+	default:
+		flog, err = os.OpenFile(cfg.Logger.Path, os.O_CREATE|os.O_WRONLY|os.O_APPEND, os.FileMode(0755))
+		if err != nil {
+			return logClose, fmt.Errorf("open log file failed: %w", err)
+		}
+	}
 
-func Debugf(format string, vals ...interface{}) {
-	globalLogger.Debugf(format, vals...)
-}
+	logrus.SetOutput(flog)
+	logrus.SetLevel(level[cfg.Logger.Level])
+	logrus.SetFormatter(&logrus.JSONFormatter{})
 
-func Warnf(format string, vals ...interface{}) {
-	globalLogger.Warnf(format, vals...)
-}
+	logClose = func() {
+		if err := flog.Close(); err != nil {
+			logrus.Warn(flog)
+		}
+	}
 
-func Errorf(format string, vals ...interface{}) {
-	globalLogger.Errorf(format, vals...)
+	return logClose, nil
 }

@@ -2,11 +2,14 @@ logger:
   level: info
   path: stderr
 
-server:
+http:
   addr: localhost:8081
   write_timeout: 5s
   read_timeout: 5s
   handler_timeout: 5s
+
+grpc:
+  addr: localhost:8082
 
 database:
   connection_addr: calendar_user:calendar_pass@tcp(localhost:3311)/calendar?parseTime=true

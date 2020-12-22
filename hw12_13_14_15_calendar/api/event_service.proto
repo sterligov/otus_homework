@@ -1,0 +1,89 @@
+syntax = "proto3";
+
+package event;
+option go_package = ".;pb";
+
+import "google/protobuf/timestamp.proto";
+import "google/api/annotations.proto";
+
+message Event {
+  int64 id = 1;
+  string title = 2;
+  string description = 3;
+  int64 userID = 4 [json_name="user_id"];
+  google.protobuf.Timestamp startDate = 5 [json_name="start_date"];
+  google.protobuf.Timestamp endDate = 6 [json_name="end_date"];
+  google.protobuf.Timestamp notificationDate = 7 [json_name="notification_date"];
+}
+
+message Events {
+  repeated Event events = 1;
+}
+
+message Inserted {
+  int64 insertedID = 1 [json_name="inserted_id"];
+}
+
+message EventID {
+  int64 id = 1;
+}
+
+message Affected {
+  int64 affected = 1;
+}
+
+message HealthResponse {
+  string status = 1;
+}
+
+message UserPeriodEventRequest {
+  int64 userID = 1;
+  google.protobuf.Timestamp date = 2;
+}
+
+message Empty {}
+
+service EventService {
+  rpc GetEventByID(EventID) returns (Event) {
+    option (google.api.http) = {
+      get: "/events/{id}"
+    };
+  };
+  rpc CreateEvent(Event) returns (Inserted) {
+    option (google.api.http) = {
+      post: "/events"
+      body: "*"
+    };
+  };
+  rpc UpdateEvent(Event) returns (Affected) {
+    option (google.api.http) = {
+      put: "/events/{id}"
+      body: "*"
+    };
+  };
+  rpc DeleteEvent(EventID) returns (Affected) {
+    option (google.api.http) = {
+      delete: "/events/{id}"
+    };
+  };
+  rpc GetUserDayEvents(UserPeriodEventRequest) returns (Events) {
+    option (google.api.http) = {
+      get: "/events/day/{date}"
+    };
+  };
+  rpc GetUserWeekEvents(UserPeriodEventRequest) returns (Events) {
+    option (google.api.http) = {
+      get: "/events/week/{date}"
+    };
+  };
+  rpc GetUserMonthEvents(UserPeriodEventRequest) returns (Events) {
+    option (google.api.http) = {
+      get: "/events/month/{date}"
+    };
+  };
+  rpc Health(Empty) returns (HealthResponse) {
+    option (google.api.http) = {
+      get: "/health"
+    };
+  };
+}
