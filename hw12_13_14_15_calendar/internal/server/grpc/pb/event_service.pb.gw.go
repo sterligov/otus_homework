@@ -21,6 +21,7 @@ import (
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 // Suppress "imported and not used" errors
@@ -32,7 +33,7 @@ var _ = utilities.NewDoubleArray
 var _ = metadata.Join
 
 func request_EventService_GetEventByID_0(ctx context.Context, marshaler runtime.Marshaler, client EventServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq EventID
+	var protoReq GetEventByIDRequest
 	var metadata runtime.ServerMetadata
 
 	var (
@@ -58,7 +59,7 @@ func request_EventService_GetEventByID_0(ctx context.Context, marshaler runtime.
 }
 
 func local_request_EventService_GetEventByID_0(ctx context.Context, marshaler runtime.Marshaler, server EventServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq EventID
+	var protoReq GetEventByIDRequest
 	var metadata runtime.ServerMetadata
 
 	var (
@@ -84,7 +85,7 @@ func local_request_EventService_GetEventByID_0(ctx context.Context, marshaler ru
 }
 
 func request_EventService_CreateEvent_0(ctx context.Context, marshaler runtime.Marshaler, client EventServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq Event
+	var protoReq CreateEventRequest
 	var metadata runtime.ServerMetadata
 
 	newReader, berr := utilities.IOReaderFactory(req.Body)
@@ -101,7 +102,7 @@ func request_EventService_CreateEvent_0(ctx context.Context, marshaler runtime.M
 }
 
 func local_request_EventService_CreateEvent_0(ctx context.Context, marshaler runtime.Marshaler, server EventServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq Event
+	var protoReq CreateEventRequest
 	var metadata runtime.ServerMetadata
 
 	newReader, berr := utilities.IOReaderFactory(req.Body)
@@ -118,7 +119,7 @@ func local_request_EventService_CreateEvent_0(ctx context.Context, marshaler run
 }
 
 func request_EventService_UpdateEvent_0(ctx context.Context, marshaler runtime.Marshaler, client EventServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq Event
+	var protoReq UpdateEventRequest
 	var metadata runtime.ServerMetadata
 
 	newReader, berr := utilities.IOReaderFactory(req.Body)
@@ -152,7 +153,7 @@ func request_EventService_UpdateEvent_0(ctx context.Context, marshaler runtime.M
 }
 
 func local_request_EventService_UpdateEvent_0(ctx context.Context, marshaler runtime.Marshaler, server EventServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq Event
+	var protoReq UpdateEventRequest
 	var metadata runtime.ServerMetadata
 
 	newReader, berr := utilities.IOReaderFactory(req.Body)
@@ -186,7 +187,7 @@ func local_request_EventService_UpdateEvent_0(ctx context.Context, marshaler run
 }
 
 func request_EventService_DeleteEvent_0(ctx context.Context, marshaler runtime.Marshaler, client EventServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq EventID
+	var protoReq DeleteEventRequest
 	var metadata runtime.ServerMetadata
 
 	var (
@@ -212,7 +213,7 @@ func request_EventService_DeleteEvent_0(ctx context.Context, marshaler runtime.M
 }
 
 func local_request_EventService_DeleteEvent_0(ctx context.Context, marshaler runtime.Marshaler, server EventServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq EventID
+	var protoReq DeleteEventRequest
 	var metadata runtime.ServerMetadata
 
 	var (
@@ -448,7 +449,7 @@ func local_request_EventService_GetUserMonthEvents_0(ctx context.Context, marsha
 }
 
 func request_EventService_Health_0(ctx context.Context, marshaler runtime.Marshaler, client EventServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq Empty
+	var protoReq emptypb.Empty
 	var metadata runtime.ServerMetadata
 
 	msg, err := client.Health(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
@@ -457,7 +458,7 @@ func request_EventService_Health_0(ctx context.Context, marshaler runtime.Marsha
 }
 
 func local_request_EventService_Health_0(ctx context.Context, marshaler runtime.Marshaler, server EventServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq Empty
+	var protoReq emptypb.Empty
 	var metadata runtime.ServerMetadata
 
 	msg, err := server.Health(ctx, &protoReq)

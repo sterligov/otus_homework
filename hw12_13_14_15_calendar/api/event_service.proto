@@ -4,6 +4,7 @@ package event;
 option go_package = ".;pb";
 
 import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
 import "google/api/annotations.proto";
 
 message Event {
@@ -16,20 +17,45 @@ message Event {
   google.protobuf.Timestamp notificationDate = 7 [json_name="notification_date"];
 }
 
+message GetEventByIDRequest {
+  int64 id = 1;
+}
+
+message GetEventByIDResponse {
+  Event event = 1;
+}
+
+message CreateEventRequest {
+  Event event = 1;
+}
+
+message CreateEventResponse {
+  int64 insertedID = 1 [json_name="inserted_id"];
+}
+
+message UpdateEventRequest {
+  int64 id = 1;
+  Event event = 2;
+}
+
+message UpdateEventResponse {
+  int64 affected = 1;
+}
+
+message DeleteEventRequest {
+  int64 id = 1;
+}
+
+message DeleteEventResponse {
+  int64 affected = 1;
+}
+
 message Events {
   repeated Event events = 1;
 }
 
 message Inserted {
   int64 insertedID = 1 [json_name="inserted_id"];
-}
-
-message EventID {
-  int64 id = 1;
-}
-
-message Affected {
-  int64 affected = 1;
 }
 
 message HealthResponse {
@@ -41,47 +67,51 @@ message UserPeriodEventRequest {
   google.protobuf.Timestamp date = 2;
 }
 
+message EventListResponse {
+  repeated Event events = 1;
+}
+
 message Empty {}
 
 service EventService {
-  rpc GetEventByID(EventID) returns (Event) {
+  rpc GetEventByID(GetEventByIDRequest) returns (GetEventByIDResponse) {
     option (google.api.http) = {
       get: "/events/{id}"
     };
   };
-  rpc CreateEvent(Event) returns (Inserted) {
+  rpc CreateEvent(CreateEventRequest) returns (CreateEventResponse) {
     option (google.api.http) = {
       post: "/events"
       body: "*"
     };
   };
-  rpc UpdateEvent(Event) returns (Affected) {
+  rpc UpdateEvent(UpdateEventRequest) returns (UpdateEventResponse) {
     option (google.api.http) = {
       put: "/events/{id}"
       body: "*"
     };
   };
-  rpc DeleteEvent(EventID) returns (Affected) {
+  rpc DeleteEvent(DeleteEventRequest) returns (DeleteEventResponse) {
     option (google.api.http) = {
       delete: "/events/{id}"
     };
   };
-  rpc GetUserDayEvents(UserPeriodEventRequest) returns (Events) {
+  rpc GetUserDayEvents(UserPeriodEventRequest) returns (EventListResponse) {
     option (google.api.http) = {
       get: "/events/day/{date}"
     };
   };
-  rpc GetUserWeekEvents(UserPeriodEventRequest) returns (Events) {
+  rpc GetUserWeekEvents(UserPeriodEventRequest) returns (EventListResponse) {
     option (google.api.http) = {
       get: "/events/week/{date}"
     };
   };
-  rpc GetUserMonthEvents(UserPeriodEventRequest) returns (Events) {
+  rpc GetUserMonthEvents(UserPeriodEventRequest) returns (EventListResponse) {
     option (google.api.http) = {
       get: "/events/month/{date}"
     };
   };
-  rpc Health(Empty) returns (HealthResponse) {
+  rpc Health(google.protobuf.Empty) returns (HealthResponse) {
     option (google.api.http) = {
       get: "/health"
     };

@@ -37,10 +37,10 @@ func TestEventServiceServer_CreateEvent(t *testing.T) {
 			Return(insertedID, nil)
 
 		server := NewEventServiceServer(eventUseCase, &mocks.StorageConnection{})
-		inserted, err := server.CreateEvent(context.Background(), e)
+		resp, err := server.CreateEvent(context.Background(), &pb.CreateEventRequest{Event: e})
 
 		require.NoError(t, err)
-		require.Equal(t, insertedID, inserted.InsertedID)
+		require.Equal(t, insertedID, resp.InsertedID)
 	})
 
 	t.Run("busy date", func(t *testing.T) {
@@ -52,10 +52,10 @@ func TestEventServiceServer_CreateEvent(t *testing.T) {
 			Return(int64(0), storage.ErrDateBusy)
 
 		server := NewEventServiceServer(eventUseCase, &mocks.StorageConnection{})
-		inserted, err := server.CreateEvent(ctx, e)
+		resp, err := server.CreateEvent(ctx, &pb.CreateEventRequest{Event: e})
 		s, ok := status.FromError(err)
 
-		require.Nil(t, inserted)
+		require.Nil(t, resp)
 		require.True(t, ok)
 		require.Equal(t, codes.InvalidArgument, s.Code())
 	})
@@ -69,10 +69,10 @@ func TestEventServiceServer_CreateEvent(t *testing.T) {
 			Return(int64(0), fmt.Errorf("internal error"))
 
 		server := NewEventServiceServer(eventUseCase, &mocks.StorageConnection{})
-		inserted, err := server.CreateEvent(ctx, e)
+		resp, err := server.CreateEvent(ctx, &pb.CreateEventRequest{Event: e})
 
 		require.Error(t, err)
-		require.Nil(t, inserted)
+		require.Nil(t, resp)
 	})
 }
 
@@ -87,10 +87,10 @@ func TestEventServiceServer_DeleteEvent(t *testing.T) {
 			Return(affectedRows, nil)
 
 		server := NewEventServiceServer(eventUseCase, &mocks.StorageConnection{})
-		affected, err := server.DeleteEvent(ctx, &pb.EventID{Id: eventID})
+		resp, err := server.DeleteEvent(ctx, &pb.DeleteEventRequest{Id: eventID})
 
 		require.NoError(t, err)
-		require.Equal(t, affectedRows, affected.Affected)
+		require.Equal(t, affectedRows, resp.Affected)
 	})
 
 	t.Run("error", func(t *testing.T) {
@@ -102,10 +102,10 @@ func TestEventServiceServer_DeleteEvent(t *testing.T) {
 			Return(int64(0), fmt.Errorf("internal error"))
 
 		server := NewEventServiceServer(eventUseCase, &mocks.StorageConnection{})
-		affected, err := server.DeleteEvent(ctx, &pb.EventID{Id: eventID})
+		resp, err := server.DeleteEvent(ctx, &pb.DeleteEventRequest{Id: eventID})
 
 		require.Error(t, err)
-		require.Nil(t, affected)
+		require.Nil(t, resp)
 	})
 }
 
@@ -120,10 +120,10 @@ func TestEventServiceServer_UpdateEvent(t *testing.T) {
 			Return(affectedRows, nil)
 
 		server := NewEventServiceServer(eventUseCase, &mocks.StorageConnection{})
-		affected, err := server.UpdateEvent(ctx, e)
+		resp, err := server.UpdateEvent(ctx, &pb.UpdateEventRequest{Event: e})
 
 		require.NoError(t, err)
-		require.Equal(t, affectedRows, affected.Affected)
+		require.Equal(t, affectedRows, resp.Affected)
 	})
 
 	t.Run("busy date", func(t *testing.T) {
@@ -135,10 +135,10 @@ func TestEventServiceServer_UpdateEvent(t *testing.T) {
 			Return(int64(0), storage.ErrDateBusy)
 
 		server := NewEventServiceServer(eventUseCase, &mocks.StorageConnection{})
-		inserted, err := server.UpdateEvent(ctx, e)
+		resp, err := server.UpdateEvent(ctx, &pb.UpdateEventRequest{Event: e})
 		s, ok := status.FromError(err)
 
-		require.Nil(t, inserted)
+		require.Nil(t, resp)
 		require.True(t, ok)
 		require.Equal(t, codes.InvalidArgument, s.Code())
 	})
@@ -152,10 +152,10 @@ func TestEventServiceServer_UpdateEvent(t *testing.T) {
 			Return(int64(0), fmt.Errorf("internal error"))
 
 		server := NewEventServiceServer(eventUseCase, &mocks.StorageConnection{})
-		inserted, err := server.UpdateEvent(ctx, e)
+		resp, err := server.UpdateEvent(ctx, &pb.UpdateEventRequest{Event: e})
 
 		require.Error(t, err)
-		require.Nil(t, inserted)
+		require.Nil(t, resp)
 	})
 }
 
@@ -178,10 +178,10 @@ func TestEventServiceServer_GetEventByID(t *testing.T) {
 			Return(FromEvent(e), nil)
 
 		server := NewEventServiceServer(eventUseCase, &mocks.StorageConnection{})
-		actualEvent, err := server.GetEventByID(ctx, &pb.EventID{Id: eventID})
+		resp, err := server.GetEventByID(ctx, &pb.GetEventByIDRequest{Id: eventID})
 
 		require.NoError(t, err)
-		require.Equal(t, e, actualEvent)
+		require.Equal(t, e, resp.Event)
 	})
 
 	t.Run("not found", func(t *testing.T) {
@@ -193,10 +193,10 @@ func TestEventServiceServer_GetEventByID(t *testing.T) {
 			Return(model.Event{}, storage.ErrNotFound)
 
 		server := NewEventServiceServer(eventUseCase, &mocks.StorageConnection{})
-		actualEvent, err := server.GetEventByID(ctx, &pb.EventID{Id: eventID})
+		resp, err := server.GetEventByID(ctx, &pb.GetEventByIDRequest{Id: eventID})
 		s, ok := status.FromError(err)
 
-		require.Nil(t, actualEvent)
+		require.Nil(t, resp)
 		require.True(t, ok)
 		require.Equal(t, codes.NotFound, s.Code())
 	})
@@ -210,9 +210,9 @@ func TestEventServiceServer_GetEventByID(t *testing.T) {
 			Return(model.Event{}, fmt.Errorf("internal error"))
 
 		server := NewEventServiceServer(eventUseCase, &mocks.StorageConnection{})
-		actualEvent, err := server.GetEventByID(ctx, &pb.EventID{Id: eventID})
+		resp, err := server.GetEventByID(ctx, &pb.GetEventByIDRequest{Id: eventID})
 
-		require.Nil(t, actualEvent)
+		require.Nil(t, resp)
 		require.Error(t, err)
 	})
 }
@@ -238,10 +238,10 @@ func TestEventServiceServer_GetUserDayEvents(t *testing.T) {
 			Return(events, nil)
 
 		server := NewEventServiceServer(eventUseCase, &mocks.StorageConnection{})
-		actualEvents, err := server.GetUserDayEvents(ctx, &pb.UserPeriodEventRequest{UserID: userID, Date: curTime})
+		resp, err := server.GetUserDayEvents(ctx, &pb.UserPeriodEventRequest{UserID: userID, Date: curTime})
 
 		require.NoError(t, err)
-		require.Equal(t, ToEvents(events), actualEvents)
+		require.Equal(t, ToEventSlice(events), resp.Events)
 	})
 
 	t.Run("error", func(t *testing.T) {
@@ -254,10 +254,10 @@ func TestEventServiceServer_GetUserDayEvents(t *testing.T) {
 			Return(nil, fmt.Errorf("internal error"))
 
 		server := NewEventServiceServer(eventUseCase, &mocks.StorageConnection{})
-		actualEvents, err := server.GetUserDayEvents(ctx, &pb.UserPeriodEventRequest{UserID: userID, Date: curTime})
+		resp, err := server.GetUserDayEvents(ctx, &pb.UserPeriodEventRequest{UserID: userID, Date: curTime})
 
 		require.Error(t, err)
-		require.Nil(t, actualEvents)
+		require.Nil(t, resp)
 	})
 }
 
@@ -282,10 +282,10 @@ func TestEventServiceServer_GetUserWeekEvents(t *testing.T) {
 			Return(events, nil)
 
 		server := NewEventServiceServer(eventUseCase, &mocks.StorageConnection{})
-		actualEvents, err := server.GetUserWeekEvents(ctx, &pb.UserPeriodEventRequest{UserID: userID, Date: curTime})
+		resp, err := server.GetUserWeekEvents(ctx, &pb.UserPeriodEventRequest{UserID: userID, Date: curTime})
 
 		require.NoError(t, err)
-		require.Equal(t, ToEvents(events), actualEvents)
+		require.Equal(t, ToEventSlice(events), resp.Events)
 	})
 
 	t.Run("error", func(t *testing.T) {
@@ -298,10 +298,10 @@ func TestEventServiceServer_GetUserWeekEvents(t *testing.T) {
 			Return(nil, fmt.Errorf("internal error"))
 
 		server := NewEventServiceServer(eventUseCase, &mocks.StorageConnection{})
-		actualEvents, err := server.GetUserWeekEvents(ctx, &pb.UserPeriodEventRequest{UserID: userID, Date: curTime})
+		resp, err := server.GetUserWeekEvents(ctx, &pb.UserPeriodEventRequest{UserID: userID, Date: curTime})
 
 		require.Error(t, err)
-		require.Nil(t, actualEvents)
+		require.Nil(t, resp)
 	})
 }
 
@@ -326,10 +326,10 @@ func TestEventServiceServer_GetUserMonthEvents(t *testing.T) {
 			Return(events, nil)
 
 		server := NewEventServiceServer(eventUseCase, &mocks.StorageConnection{})
-		actualEvents, err := server.GetUserMonthEvents(ctx, &pb.UserPeriodEventRequest{UserID: userID, Date: curTime})
+		resp, err := server.GetUserMonthEvents(ctx, &pb.UserPeriodEventRequest{UserID: userID, Date: curTime})
 
 		require.NoError(t, err)
-		require.Equal(t, ToEvents(events), actualEvents)
+		require.Equal(t, ToEventSlice(events), resp.Events)
 	})
 
 	t.Run("error", func(t *testing.T) {
@@ -342,10 +342,10 @@ func TestEventServiceServer_GetUserMonthEvents(t *testing.T) {
 			Return(nil, fmt.Errorf("internal error"))
 
 		server := NewEventServiceServer(eventUseCase, &mocks.StorageConnection{})
-		actualEvents, err := server.GetUserMonthEvents(ctx, &pb.UserPeriodEventRequest{UserID: userID, Date: curTime})
+		resp, err := server.GetUserMonthEvents(ctx, &pb.UserPeriodEventRequest{UserID: userID, Date: curTime})
 
 		require.Error(t, err)
-		require.Nil(t, actualEvents)
+		require.Nil(t, resp)
 	})
 }
 
@@ -427,7 +427,7 @@ func TestFromEvent(t *testing.T) {
 	require.Equal(t, expected, actual)
 }
 
-func TestToEvents(t *testing.T) {
+func TestToEventSlice(t *testing.T) {
 	curTime := timestamppb.Now()
 	e := []model.Event{
 		{
@@ -449,30 +449,28 @@ func TestToEvents(t *testing.T) {
 			NotificationDate: curTime.AsTime(),
 		},
 	}
-	expected := &pb.Events{
-		Events: []*pb.Event{
-			{
-				Id:               1,
-				Title:            "title",
-				Description:      "description",
-				UserID:           1,
-				StartDate:        curTime,
-				EndDate:          curTime,
-				NotificationDate: curTime,
-			},
-			{
-				Id:               2,
-				Title:            "title2",
-				Description:      "description2",
-				UserID:           2,
-				StartDate:        curTime,
-				EndDate:          curTime,
-				NotificationDate: curTime,
-			},
+	expected := []*pb.Event{
+		{
+			Id:               1,
+			Title:            "title",
+			Description:      "description",
+			UserID:           1,
+			StartDate:        curTime,
+			EndDate:          curTime,
+			NotificationDate: curTime,
+		},
+		{
+			Id:               2,
+			Title:            "title2",
+			Description:      "description2",
+			UserID:           2,
+			StartDate:        curTime,
+			EndDate:          curTime,
+			NotificationDate: curTime,
 		},
 	}
 
-	actual := ToEvents(e)
+	actual := ToEventSlice(e)
 
 	require.Equal(t, expected, actual)
 }
