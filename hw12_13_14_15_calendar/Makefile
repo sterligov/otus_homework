@@ -1,28 +1,64 @@
 include ./deployments/.env
 
-BIN := "./bin/calendar"
+CALENDAR_BIN := "./bin/calendar"
+SCHEDULER_BIN := "./bin/scheduler"
+SENDER_BIN := "./bin/sender"
 DOCKER_IMG="calendar:develop"
 
 GIT_HASH := $(shell git log --format="%h" -n 1)
 LDFLAGS := -X main.release="develop" -X main.buildDate=$(shell date -u +%Y-%m-%dT%H:%M:%S) -X main.gitHash=$(GIT_HASH)
 
 build:
-	go build -v -o $(BIN) -ldflags "$(LDFLAGS)" ./cmd/calendar
+	go build -v -o $(CALENDAR_BIN) -ldflags "$(LDFLAGS)" ./cmd/calendar
+	go build -v -o $(SCHEDULER_BIN) -ldflags "$(LDFLAGS)" ./cmd/scheduler
+	go build -v -o $(SENDER_BIN) -ldflags "$(LDFLAGS)" ./cmd/sender
+
+build-calendar:
+	go build -v -o $(CALENDAR_BIN) -ldflags "$(LDFLAGS)" ./cmd/calendar
+
+build-scheduler:
+	go build -v -o $(SCHEDULER_BIN) -ldflags "$(LDFLAGS)" ./cmd/scheduler
+
+build-sender:
+	go build -v -o $(SENDER_BIN) -ldflags "$(LDFLAGS)" ./cmd/sender
+
+run-calendar: build-calendar
+	$(CALENDAR_BIN) -config ./configs/config.yml
+
+run-scheduler: build-scheduler
+	$(SCHEDULER_BIN) -config ./configs/scheduler_config.yml
+
+run-sender: build-sender
+	$(SENDER_BIN) -config ./configs/sender_config.yml
 
 run: build
-	$(BIN) -config ./configs/config.yml
+	$(CALENDAR_BIN) -config ./configs/config.yml
+	$(SCHEDULER_BIN) -config ./configs/config.yml
+	$(SENDER_BIN) -config ./configs/config.yml
 
-build-img:
+build-calendar-img:
 	docker build \
 		--build-arg=LDFLAGS="$(LDFLAGS)" \
 		-t $(DOCKER_IMG) \
-		-f build/Dockerfile .
+		-f build/Calendar.Dockerfile .
 
-run-img: build-img
+build-scheduler-img:
+	docker build \
+		--build-arg=LDFLAGS="$(LDFLAGS)" \
+		-t $(DOCKER_IMG) \
+		-f build/Scheduler.Dockerfile .
+
+build-sender-img:
+	docker build \
+		--build-arg=LDFLAGS="$(LDFLAGS)" \
+		-t $(DOCKER_IMG) \
+		-f build/Sender.Dockerfile .
+
+run-calenadr-img: build-calendar-img
 	docker run $(DOCKER_IMG)
 
-version: build
-	$(BIN) version
+calendar-version: build
+	$(CALENDAR_BIN) version
 
 test:
 	go test -race ./internal/...
@@ -35,9 +71,8 @@ lint: install-lint-deps
 
 wire:
 	wire cmd/calendar/wire.go
-
-mocks:
-	mockery --all --dir internal --output ./internal/mocks --case underscore
+	wire cmd/scheduler/wire.go
+	wire cmd/sender/wire.go
 
 docker-up:
 	cd deployments && docker-compose up -d
