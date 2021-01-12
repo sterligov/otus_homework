@@ -14,7 +14,7 @@ import (
 )
 
 func TestEventUseCase_CreateEvent(t *testing.T) {
-	t.Run("create event", func(t *testing.T) {
+	t.Run("ok", func(t *testing.T) {
 		rep := &mocks.EventRepository{}
 
 		e := model.Event{
@@ -39,7 +39,7 @@ func TestEventUseCase_CreateEvent(t *testing.T) {
 		require.Equal(t, int64(1), insertedID)
 	})
 
-	t.Run("create event error", func(t *testing.T) {
+	t.Run("error", func(t *testing.T) {
 		rep := &mocks.EventRepository{}
 
 		ctx := context.Background()
@@ -57,7 +57,7 @@ func TestEventUseCase_CreateEvent(t *testing.T) {
 }
 
 func TestEventUseCase_GetEventByID(t *testing.T) {
-	t.Run("get event by id", func(t *testing.T) {
+	t.Run("ok", func(t *testing.T) {
 		rep := &mocks.EventRepository{}
 
 		ctx := context.Background()
@@ -81,7 +81,7 @@ func TestEventUseCase_GetEventByID(t *testing.T) {
 		require.Equal(t, model.ToEvent(expected), actual)
 	})
 
-	t.Run("get event by id error", func(t *testing.T) {
+	t.Run("error", func(t *testing.T) {
 		rep := &mocks.EventRepository{}
 
 		ctx := context.Background()
@@ -96,7 +96,7 @@ func TestEventUseCase_GetEventByID(t *testing.T) {
 }
 
 func TestEventUseCase_DeleteEvent(t *testing.T) {
-	t.Run("delete event", func(t *testing.T) {
+	t.Run("ok", func(t *testing.T) {
 		rep := &mocks.EventRepository{}
 
 		expectedAffected := int64(1)
@@ -112,7 +112,7 @@ func TestEventUseCase_DeleteEvent(t *testing.T) {
 		require.Equal(t, expectedAffected, affected)
 	})
 
-	t.Run("delete event error", func(t *testing.T) {
+	t.Run("error", func(t *testing.T) {
 		rep := &mocks.EventRepository{}
 
 		var expectedAffected int64
@@ -130,7 +130,7 @@ func TestEventUseCase_DeleteEvent(t *testing.T) {
 }
 
 func TestEventUseCase_UpdateEvent(t *testing.T) {
-	t.Run("update event", func(t *testing.T) {
+	t.Run("ok", func(t *testing.T) {
 		rep := &mocks.EventRepository{}
 
 		expectedAffected := int64(1)
@@ -146,7 +146,7 @@ func TestEventUseCase_UpdateEvent(t *testing.T) {
 		require.Equal(t, expectedAffected, affected)
 	})
 
-	t.Run("update event error", func(t *testing.T) {
+	t.Run("error", func(t *testing.T) {
 		rep := &mocks.EventRepository{}
 
 		var expectedAffected int64
@@ -164,7 +164,7 @@ func TestEventUseCase_UpdateEvent(t *testing.T) {
 }
 
 func TestEventUseCase_GetUserDayEvents(t *testing.T) {
-	t.Run("get user day events", func(t *testing.T) {
+	t.Run("ok", func(t *testing.T) {
 		rep := &mocks.EventRepository{}
 
 		curTime := time.Now()
@@ -194,7 +194,7 @@ func TestEventUseCase_GetUserDayEvents(t *testing.T) {
 		require.Equal(t, model.ToEventSlice(storEvents), actualEvents)
 	})
 
-	t.Run("get user day events error", func(t *testing.T) {
+	t.Run("GetUserEventsByPeriod error", func(t *testing.T) {
 		rep := &mocks.EventRepository{}
 
 		curTime := time.Now()
@@ -214,7 +214,7 @@ func TestEventUseCase_GetUserDayEvents(t *testing.T) {
 }
 
 func TestEventUseCase_GetUserWeekEvents(t *testing.T) {
-	t.Run("get user week events", func(t *testing.T) {
+	t.Run("ok", func(t *testing.T) {
 		rep := &mocks.EventRepository{}
 
 		curTime := time.Now()
@@ -244,7 +244,7 @@ func TestEventUseCase_GetUserWeekEvents(t *testing.T) {
 		require.Equal(t, model.ToEventSlice(storEvents), actualEvents)
 	})
 
-	t.Run("get user week events error", func(t *testing.T) {
+	t.Run("GetUserEventsByPeriod error", func(t *testing.T) {
 		rep := &mocks.EventRepository{}
 
 		curTime := time.Now()
@@ -264,7 +264,7 @@ func TestEventUseCase_GetUserWeekEvents(t *testing.T) {
 }
 
 func TestEventUseCase_GetUserMonthEvents(t *testing.T) {
-	t.Run("get user month events", func(t *testing.T) {
+	t.Run("ok", func(t *testing.T) {
 		rep := &mocks.EventRepository{}
 
 		curTime := time.Now()
@@ -294,7 +294,7 @@ func TestEventUseCase_GetUserMonthEvents(t *testing.T) {
 		require.Equal(t, model.ToEventSlice(storEvents), actualEvents)
 	})
 
-	t.Run("get user month events error", func(t *testing.T) {
+	t.Run("GetUserEventsByPeriod error", func(t *testing.T) {
 		rep := &mocks.EventRepository{}
 
 		curTime := time.Now()
@@ -310,5 +310,92 @@ func TestEventUseCase_GetUserMonthEvents(t *testing.T) {
 		_, err := useCase.GetUserMonthEvents(ctx, 1, curTime)
 
 		require.Error(t, err)
+	})
+}
+
+func TestEventUseCase_GetEventsByNotificationDatePeriod(t *testing.T) {
+	t.Run("ok", func(t *testing.T) {
+		rep := &mocks.EventRepository{}
+
+		curTime := time.Now()
+
+		storEvents := []storage.Event{
+			{
+				ID:    1,
+				Title: "title1",
+			},
+			{
+				ID:    2,
+				Title: "title2",
+			},
+		}
+
+		sDate := now.With(curTime).BeginningOfMonth()
+		eDate := now.With(curTime).EndOfMonth()
+
+		ctx := context.Background()
+		rep.On("GetEventsByNotificationDatePeriod", ctx, sDate, eDate).
+			Return(storEvents, nil)
+
+		useCase := NewEventUseCase(rep)
+		actualEvents, err := useCase.GetEventsByNotificationDatePeriod(ctx, sDate, eDate)
+
+		require.NoError(t, err)
+		require.Equal(t, model.ToEventSlice(storEvents), actualEvents)
+	})
+
+	t.Run("error", func(t *testing.T) {
+		rep := &mocks.EventRepository{}
+
+		curTime := time.Now()
+
+		sDate := now.With(curTime).BeginningOfMonth()
+		eDate := now.With(curTime).EndOfMonth()
+
+		ctx := context.Background()
+		rep.On("GetEventsByNotificationDatePeriod", ctx, sDate, eDate).
+			Return(nil, fmt.Errorf("error"))
+
+		useCase := NewEventUseCase(rep)
+		actualEvents, err := useCase.GetEventsByNotificationDatePeriod(ctx, sDate, eDate)
+
+		require.Error(t, err)
+		require.Empty(t, actualEvents)
+	})
+}
+
+func TestEventUseCase_DeleteEventsBeforeDate(t *testing.T) {
+	t.Run("ok", func(t *testing.T) {
+		rep := &mocks.EventRepository{}
+
+		curTime := time.Now()
+		affected := int64(5)
+
+		ctx := context.Background()
+		rep.On("DeleteEventsBeforeDate", ctx, curTime).
+			Return(affected, nil)
+
+		useCase := NewEventUseCase(rep)
+		actualAffected, err := useCase.DeleteEventsBeforeDate(ctx, curTime)
+
+		require.NoError(t, err)
+		require.Equal(t, affected, actualAffected)
+	})
+
+	t.Run("error", func(t *testing.T) {
+		rep := &mocks.EventRepository{}
+
+		curTime := time.Now()
+		affected := int64(0)
+
+		ctx := context.Background()
+		rep.On("DeleteEventsBeforeDate", ctx, curTime).
+			Return(affected, fmt.Errorf("error"))
+
+		useCase := NewEventUseCase(rep)
+		actualAffected, err := useCase.DeleteEventsBeforeDate(ctx, curTime)
+
+		require.Error(t, err)
+		require.Equal(t, affected, actualAffected)
 	})
 }

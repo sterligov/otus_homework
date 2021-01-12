@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	dateLayout        = "2006-01-02 15:04"
+	dateLayout        = "2006-01-02 15:04:05"
 	mysqlUniqueErrNum = 1062
 )
 
@@ -177,4 +177,67 @@ ORDER BY
 	}
 
 	return events, nil
+}
+
+func (es *EventStorage) GetEventsByNotificationDatePeriod(
+	ctx context.Context,
+	startDate, endDate time.Time,
+) ([]storage.Event, error) {
+	query := `
+SELECT
+	*
+FROM
+	event
+WHERE
+    notification_date BETWEEN ? AND ?
+ORDER BY
+	notification_date`
+
+	sdate := startDate.Format(dateLayout)
+	edate := endDate.Format(dateLayout)
+
+	rows, err := es.db.QueryxContext(ctx, query, sdate, edate)
+	if err != nil {
+		return nil, fmt.Errorf("fetching events failed: %w", err)
+	}
+	defer func() {
+		if err := rows.Close(); err != nil {
+			logrus.Warnf("rows close failed: %s", err)
+		}
+	}()
+
+	var (
+		events []storage.Event
+		event  storage.Event
+	)
+
+	for rows.Next() {
+		if err := rows.StructScan(&event); err != nil {
+			return nil, fmt.Errorf("scan event failed: %w", err)
+		}
+
+		events = append(events, event)
+	}
+
+	if rows.Err() != nil {
+		return nil, fmt.Errorf("rows iteration failed: %w", rows.Err())
+	}
+
+	return events, nil
+}
+
+func (es *EventStorage) DeleteEventsBeforeDate(ctx context.Context, date time.Time) (int64, error) {
+	query := `DELETE FROM event WHERE start_date <= ?`
+
+	res, err := es.db.ExecContext(ctx, query, date)
+	if err != nil {
+		return 0, fmt.Errorf("delete events failed: %w", err)
+	}
+
+	affected, err := res.RowsAffected()
+	if err != nil {
+		return 0, fmt.Errorf("get affected rows failed: %w", err)
+	}
+
+	return affected, nil
 }

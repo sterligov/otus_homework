@@ -21,7 +21,6 @@ import (
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
-	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 // Suppress "imported and not used" errors
@@ -449,7 +448,7 @@ func local_request_EventService_GetUserMonthEvents_0(ctx context.Context, marsha
 }
 
 func request_EventService_Health_0(ctx context.Context, marshaler runtime.Marshaler, client EventServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq emptypb.Empty
+	var protoReq HealthRequest
 	var metadata runtime.ServerMetadata
 
 	msg, err := client.Health(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
@@ -458,7 +457,7 @@ func request_EventService_Health_0(ctx context.Context, marshaler runtime.Marsha
 }
 
 func local_request_EventService_Health_0(ctx context.Context, marshaler runtime.Marshaler, server EventServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq emptypb.Empty
+	var protoReq HealthRequest
 	var metadata runtime.ServerMetadata
 
 	msg, err := server.Health(ctx, &protoReq)

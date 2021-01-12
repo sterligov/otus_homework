@@ -18,12 +18,12 @@ import (
 
 // Injectors from wire.go:
 
-func setup(configConfig *config.Config) (*server.Server, func(), error) {
-	db, cleanup, err := sqlstorage.DatabaseProvider(configConfig)
+func setup(cfg *config.Config) (*server.Server, func(), error) {
+	db, cleanup, err := sqlstorage.DatabaseProvider(cfg)
 	if err != nil {
 		return nil, nil, err
 	}
-	eventRepository, err := factory.CreateEventRepository(configConfig, db)
+	eventRepository, err := factory.CreateEventRepository(cfg, db)
 	if err != nil {
 		cleanup()
 		return nil, nil, err
@@ -31,13 +31,13 @@ func setup(configConfig *config.Config) (*server.Server, func(), error) {
 	eventUseCase := calendar.NewEventUseCase(eventRepository)
 	storageConnection := factory.GetStorageConnection(db)
 	eventServiceServer := service.NewEventServiceServer(eventUseCase, storageConnection)
-	grpcServer := grpc.NewServer(configConfig, eventServiceServer)
-	handler, err := internalhttp.NewHandler(configConfig)
+	grpcServer := grpc.NewServer(cfg, eventServiceServer)
+	handler, err := internalhttp.NewHandler(cfg)
 	if err != nil {
 		cleanup()
 		return nil, nil, err
 	}
-	internalhttpServer, err := internalhttp.NewServer(configConfig, handler)
+	internalhttpServer, err := internalhttp.NewServer(cfg, handler)
 	if err != nil {
 		cleanup()
 		return nil, nil, err

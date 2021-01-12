@@ -12,6 +12,7 @@ require (
 	github.com/lib/pq v1.8.0 // indirect
 	github.com/mattn/go-sqlite3 v1.14.4 // indirect
 	github.com/sirupsen/logrus v1.7.0
+	github.com/streadway/amqp v1.0.0
 	github.com/stretchr/objx v0.1.1 // indirect
 	github.com/stretchr/testify v1.6.1
 	golang.org/x/net v0.0.0-20201209123823-ac852fbbde11 // indirect

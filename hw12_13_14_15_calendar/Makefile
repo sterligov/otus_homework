@@ -3,7 +3,9 @@ include ./deployments/.env
 CALENDAR_BIN := "./bin/calendar"
 SCHEDULER_BIN := "./bin/scheduler"
 SENDER_BIN := "./bin/sender"
-DOCKER_IMG="calendar:develop"
+CALENDAR_DOCKER_IMG="calendar:develop"
+SCHEDULER_DOCKER_IMG="scheduler:develop"
+SENDER_DOCKER_IMG="sender:develop"
 
 GIT_HASH := $(shell git log --format="%h" -n 1)
 LDFLAGS := -X main.release="develop" -X main.buildDate=$(shell date -u +%Y-%m-%dT%H:%M:%S) -X main.gitHash=$(GIT_HASH)
@@ -23,7 +25,7 @@ build-sender:
 	go build -v -o $(SENDER_BIN) -ldflags "$(LDFLAGS)" ./cmd/sender
 
 run-calendar: build-calendar
-	$(CALENDAR_BIN) -config ./configs/config.yml
+	$(CALENDAR_BIN) -config ./configs/calendar_config.yml
 
 run-scheduler: build-scheduler
 	$(SCHEDULER_BIN) -config ./configs/scheduler_config.yml
@@ -32,30 +34,36 @@ run-sender: build-sender
 	$(SENDER_BIN) -config ./configs/sender_config.yml
 
 run: build
-	$(CALENDAR_BIN) -config ./configs/config.yml
-	$(SCHEDULER_BIN) -config ./configs/config.yml
-	$(SENDER_BIN) -config ./configs/config.yml
+	$(CALENDAR_BIN) -config ./configs/calendar_config.yml
+	$(SENDER_BIN) -config ./configs/sender_config.yml
+	$(SCHEDULER_BIN) -config ./configs/scheduler_config.yml
 
 build-calendar-img:
 	docker build \
 		--build-arg=LDFLAGS="$(LDFLAGS)" \
-		-t $(DOCKER_IMG) \
+		-t $(CALENDAR_DOCKER_IMG) \
 		-f build/Calendar.Dockerfile .
 
 build-scheduler-img:
 	docker build \
 		--build-arg=LDFLAGS="$(LDFLAGS)" \
-		-t $(DOCKER_IMG) \
+		-t $(SCHEDULER_DOCKER_IMG) \
 		-f build/Scheduler.Dockerfile .
 
 build-sender-img:
 	docker build \
 		--build-arg=LDFLAGS="$(LDFLAGS)" \
-		-t $(DOCKER_IMG) \
+		-t $(SENDER_DOCKER_IMG) \
 		-f build/Sender.Dockerfile .
 
-run-calenadr-img: build-calendar-img
-	docker run $(DOCKER_IMG)
+run-calendar-img: build-calendar-img
+	docker run $(CALENDAR_DOCKER_IMG)
+
+run-scheduler-img: build-scheduler-img
+	docker run $(SCHEDULER_DOCKER_IMG)
+
+run-sender-img: build-sender-img
+	docker run $(SENDER_DOCKER_IMG)
 
 calendar-version: build
 	$(CALENDAR_BIN) version

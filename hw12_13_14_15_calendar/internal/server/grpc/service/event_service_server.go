@@ -117,7 +117,7 @@ func (es *EventServiceServer) GetUserMonthEvents(ctx context.Context, r *pb.User
 	return &pb.EventListResponse{Events: ToEventSlice(events)}, nil
 }
 
-func (es *EventServiceServer) Health(ctx context.Context, _ *pb.Empty) (*pb.HealthResponse, error) {
+func (es *EventServiceServer) Health(ctx context.Context, _ *pb.HealthRequest) (*pb.HealthResponse, error) {
 	ctx, cancel := context.WithTimeout(ctx, 4*time.Second)
 	defer cancel()
 

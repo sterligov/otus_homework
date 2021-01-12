@@ -4,7 +4,6 @@ package event;
 option go_package = ".;pb";
 
 import "google/protobuf/timestamp.proto";
-import "google/protobuf/empty.proto";
 import "google/api/annotations.proto";
 
 message Event {
@@ -71,7 +70,7 @@ message EventListResponse {
   repeated Event events = 1;
 }
 
-message Empty {}
+message HealthRequest {}
 
 service EventService {
   rpc GetEventByID(GetEventByIDRequest) returns (GetEventByIDResponse) {
@@ -111,7 +110,7 @@ service EventService {
       get: "/events/month/{date}"
     };
   };
-  rpc Health(google.protobuf.Empty) returns (HealthResponse) {
+  rpc Health(HealthRequest) returns (HealthResponse) {
     option (google.api.http) = {
       get: "/health"
     };

@@ -7,7 +7,6 @@ import (
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
-	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 // This is a compile-time assertion to ensure that this generated file
@@ -25,7 +24,7 @@ type EventServiceClient interface {
 	GetUserDayEvents(ctx context.Context, in *UserPeriodEventRequest, opts ...grpc.CallOption) (*EventListResponse, error)
 	GetUserWeekEvents(ctx context.Context, in *UserPeriodEventRequest, opts ...grpc.CallOption) (*EventListResponse, error)
 	GetUserMonthEvents(ctx context.Context, in *UserPeriodEventRequest, opts ...grpc.CallOption) (*EventListResponse, error)
-	Health(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*HealthResponse, error)
+	Health(ctx context.Context, in *HealthRequest, opts ...grpc.CallOption) (*HealthResponse, error)
 }
 
 type eventServiceClient struct {
@@ -99,7 +98,7 @@ func (c *eventServiceClient) GetUserMonthEvents(ctx context.Context, in *UserPer
 	return out, nil
 }
 
-func (c *eventServiceClient) Health(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*HealthResponse, error) {
+func (c *eventServiceClient) Health(ctx context.Context, in *HealthRequest, opts ...grpc.CallOption) (*HealthResponse, error) {
 	out := new(HealthResponse)
 	err := c.cc.Invoke(ctx, "/event.EventService/Health", in, out, opts...)
 	if err != nil {
@@ -119,7 +118,7 @@ type EventServiceServer interface {
 	GetUserDayEvents(context.Context, *UserPeriodEventRequest) (*EventListResponse, error)
 	GetUserWeekEvents(context.Context, *UserPeriodEventRequest) (*EventListResponse, error)
 	GetUserMonthEvents(context.Context, *UserPeriodEventRequest) (*EventListResponse, error)
-	Health(context.Context, *emptypb.Empty) (*HealthResponse, error)
+	Health(context.Context, *HealthRequest) (*HealthResponse, error)
 	mustEmbedUnimplementedEventServiceServer()
 }
 
@@ -148,7 +147,7 @@ func (UnimplementedEventServiceServer) GetUserWeekEvents(context.Context, *UserP
 func (UnimplementedEventServiceServer) GetUserMonthEvents(context.Context, *UserPeriodEventRequest) (*EventListResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUserMonthEvents not implemented")
 }
-func (UnimplementedEventServiceServer) Health(context.Context, *emptypb.Empty) (*HealthResponse, error) {
+func (UnimplementedEventServiceServer) Health(context.Context, *HealthRequest) (*HealthResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Health not implemented")
 }
 func (UnimplementedEventServiceServer) mustEmbedUnimplementedEventServiceServer() {}
@@ -291,7 +290,7 @@ func _EventService_GetUserMonthEvents_Handler(srv interface{}, ctx context.Conte
 }
 
 func _EventService_Health_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(emptypb.Empty)
+	in := new(HealthRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -303,7 +302,7 @@ func _EventService_Health_Handler(srv interface{}, ctx context.Context, dec func
 		FullMethod: "/event.EventService/Health",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(EventServiceServer).Health(ctx, req.(*emptypb.Empty))
+		return srv.(EventServiceServer).Health(ctx, req.(*HealthRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }

@@ -14,6 +14,8 @@ type EventRepository interface {
 	CreateEvent(ctx context.Context, event storage.Event) (storage.EventID, error)
 	UpdateEvent(ctx context.Context, event storage.Event) (int64, error)
 	DeleteEvent(ctx context.Context, id storage.EventID) (int64, error)
+	GetEventsByNotificationDatePeriod(ctx context.Context, start, end time.Time) ([]storage.Event, error)
+	DeleteEventsBeforeDate(ctx context.Context, date time.Time) (int64, error)
 	GetUserEventsByPeriod(ctx context.Context, uid storage.UserID, start, end time.Time) ([]storage.Event, error)
 }
 
@@ -89,6 +91,24 @@ func (eu *EventUseCase) GetUserMonthEvents(ctx context.Context, uid int64, date 
 	end := now.With(date).EndOfMonth()
 
 	events, err := eu.eventRepository.GetUserEventsByPeriod(ctx, storage.UserID(uid), start, end)
+	if err != nil {
+		return nil, err
+	}
+
+	return model.ToEventSlice(events), nil
+}
+
+func (eu *EventUseCase) DeleteEventsBeforeDate(ctx context.Context, date time.Time) (int64, error) {
+	affected, err := eu.eventRepository.DeleteEventsBeforeDate(ctx, date)
+	if err != nil {
+		return 0, err
+	}
+
+	return affected, nil
+}
+
+func (eu *EventUseCase) GetEventsByNotificationDatePeriod(ctx context.Context, start, end time.Time) ([]model.Event, error) {
+	events, err := eu.eventRepository.GetEventsByNotificationDatePeriod(ctx, start, end)
 	if err != nil {
 		return nil, err
 	}

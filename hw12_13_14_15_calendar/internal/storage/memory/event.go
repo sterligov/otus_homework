@@ -98,3 +98,37 @@ func (es *EventStorage) GetUserEventsByPeriod(
 
 	return events, nil
 }
+
+func (es *EventStorage) GetEventsByNotificationDatePeriod(
+	_ context.Context,
+	startDate, endDate time.Time,
+) ([]storage.Event, error) {
+	es.mu.RLock()
+	defer es.mu.RUnlock()
+
+	var events []storage.Event
+
+	for _, e := range es.bucket {
+		if startDate.Before(e.StartDate) && endDate.After(e.StartDate) {
+			events = append(events, e)
+		}
+	}
+
+	return events, nil
+}
+
+func (es *EventStorage) DeleteEventsBeforeDate(_ context.Context, date time.Time) (int64, error) {
+	es.mu.Lock()
+	defer es.mu.Unlock()
+
+	var deleted int64
+
+	for k, e := range es.bucket {
+		if date.After(e.StartDate) {
+			delete(es.bucket, k)
+			deleted++
+		}
+	}
+
+	return deleted, nil
+}

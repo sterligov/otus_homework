@@ -357,7 +357,7 @@ func TestEventServiceServer_Health(t *testing.T) {
 			Return(nil)
 
 		server := NewEventServiceServer(&mocks.EventUseCase{}, storageConnection)
-		resp, err := server.Health(context.Background(), &pb.Empty{})
+		resp, err := server.Health(context.Background(), &pb.HealthRequest{})
 
 		require.NoError(t, err)
 		require.NotEmpty(t, resp)
@@ -370,7 +370,7 @@ func TestEventServiceServer_Health(t *testing.T) {
 			Return(fmt.Errorf("internal error"))
 
 		server := NewEventServiceServer(&mocks.EventUseCase{}, storageConnection)
-		resp, err := server.Health(context.Background(), &pb.Empty{})
+		resp, err := server.Health(context.Background(), &pb.HealthRequest{})
 
 		require.True(t, errors.Is(err, ErrServiceUnavailable))
 		require.Nil(t, resp)
