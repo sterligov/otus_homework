@@ -25,7 +25,7 @@ func TestEventServiceServer_CreateEvent(t *testing.T) {
 			Id:               1,
 			Title:            "title",
 			Description:      "description",
-			UserID:           1,
+			UserId:           1,
 			StartDate:        timestamppb.Now(),
 			EndDate:          timestamppb.Now(),
 			NotificationDate: timestamppb.Now(),
@@ -40,7 +40,7 @@ func TestEventServiceServer_CreateEvent(t *testing.T) {
 		resp, err := server.CreateEvent(context.Background(), &pb.CreateEventRequest{Event: e})
 
 		require.NoError(t, err)
-		require.Equal(t, insertedID, resp.InsertedID)
+		require.Equal(t, insertedID, resp.InsertedId)
 	})
 
 	t.Run("busy date", func(t *testing.T) {
@@ -167,7 +167,7 @@ func TestEventServiceServer_GetEventByID(t *testing.T) {
 			Id:               eventID,
 			Title:            "title",
 			Description:      "description",
-			UserID:           1,
+			UserId:           1,
 			StartDate:        timestamppb.Now(),
 			EndDate:          timestamppb.Now(),
 			NotificationDate: timestamppb.Now(),
@@ -392,7 +392,7 @@ func TestToEvent(t *testing.T) {
 		Id:               1,
 		Title:            "title",
 		Description:      "description",
-		UserID:           1,
+		UserId:           1,
 		StartDate:        curTime,
 		EndDate:          curTime,
 		NotificationDate: curTime,
@@ -408,7 +408,7 @@ func TestFromEvent(t *testing.T) {
 		Id:               1,
 		Title:            "title",
 		Description:      "description",
-		UserID:           1,
+		UserId:           1,
 		StartDate:        curTime,
 		EndDate:          curTime,
 		NotificationDate: curTime,
@@ -454,7 +454,7 @@ func TestToEventSlice(t *testing.T) {
 			Id:               1,
 			Title:            "title",
 			Description:      "description",
-			UserID:           1,
+			UserId:           1,
 			StartDate:        curTime,
 			EndDate:          curTime,
 			NotificationDate: curTime,
@@ -463,7 +463,7 @@ func TestToEventSlice(t *testing.T) {
 			Id:               2,
 			Title:            "title2",
 			Description:      "description2",
-			UserID:           2,
+			UserId:           2,
 			StartDate:        curTime,
 			EndDate:          curTime,
 			NotificationDate: curTime,
