@@ -10,10 +10,7 @@ SENDER_DOCKER_IMG="sender:develop"
 GIT_HASH := $(shell git log --format="%h" -n 1)
 LDFLAGS := -X main.release="develop" -X main.buildDate=$(shell date -u +%Y-%m-%dT%H:%M:%S) -X main.gitHash=$(GIT_HASH)
 
-build:
-	go build -v -o $(CALENDAR_BIN) -ldflags "$(LDFLAGS)" ./cmd/calendar
-	go build -v -o $(SCHEDULER_BIN) -ldflags "$(LDFLAGS)" ./cmd/scheduler
-	go build -v -o $(SENDER_BIN) -ldflags "$(LDFLAGS)" ./cmd/sender
+build: build-calendar build-scheduler build-sender
 
 build-calendar:
 	go build -v -o $(CALENDAR_BIN) -ldflags "$(LDFLAGS)" ./cmd/calendar
@@ -33,10 +30,7 @@ run-scheduler: build-scheduler
 run-sender: build-sender
 	$(SENDER_BIN) -config ./configs/sender_config.yml
 
-run: build
-	$(CALENDAR_BIN) -config ./configs/calendar_config.yml
-	$(SENDER_BIN) -config ./configs/sender_config.yml
-	$(SCHEDULER_BIN) -config ./configs/scheduler_config.yml
+run: run-scheduler run-calendar run-sender
 
 build-calendar-img:
 	docker build \
