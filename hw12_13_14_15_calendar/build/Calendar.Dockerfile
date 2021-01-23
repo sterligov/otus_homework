@@ -12,15 +12,13 @@ COPY go.sum .
 RUN go mod download
 
 COPY . ${CODE_DIR}
-RUN rm cmd/calendar/wire.go
 
 # Собираем статический бинарник Go (без зависимостей на Си API),
 # иначе он не будет работать в apline образе.
 ARG LDFLAGS
-RUN CGO_ENABLED=0 go build \
+RUN cd cmd/calendar && CGO_ENABLED=0 go build \
         -ldflags "$LDFLAGS" \
-        -tags wireijnect \
-        -o ${BIN_FILE} cmd/calendar/*
+        -o ${BIN_FILE}
 
 # На выходе тонкий образ
 FROM alpine:3.9
