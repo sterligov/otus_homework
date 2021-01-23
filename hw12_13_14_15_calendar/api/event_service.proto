@@ -53,10 +53,6 @@ message Events {
   repeated Event events = 1;
 }
 
-message Inserted {
-  int64 inserted_id = 1;
-}
-
 message HealthResponse {
   string status = 1;
 }
