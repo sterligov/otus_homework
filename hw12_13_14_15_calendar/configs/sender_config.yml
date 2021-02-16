@@ -1,0 +1,10 @@
+logger:
+  level: info
+  path: stderr
+
+amqp:
+  connection_addr: "amqp://guest:guest@localhost:5672"
+  queue_name: event_queue
+  max_reconnect_retries: 10
+  reconnect_interval: 1s
+  handlers_number: 3

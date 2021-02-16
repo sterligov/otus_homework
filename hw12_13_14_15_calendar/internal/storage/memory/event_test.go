@@ -2,6 +2,7 @@ package memorystorage
 
 import (
 	"context"
+	"errors"
 	"sync"
 	"testing"
 	"time"
@@ -75,6 +76,44 @@ func TestEventStorage(t *testing.T) {
 		affected, err := stor.UpdateEvent(context.Background(), e)
 		require.NoError(t, err)
 		require.Equal(t, int64(1), affected)
+	})
+
+	t.Run("delete before date", func(t *testing.T) {
+		stor := NewEventStorage()
+		ctx := context.Background()
+
+		e := storage.Event{ID: 1, StartDate: time.Now().Add(-time.Minute)}
+
+		insertedID, err := stor.CreateEvent(ctx, e)
+		require.NoError(t, err)
+
+		_, err = stor.DeleteEventsBeforeDate(ctx, time.Now().Add(-2*time.Minute))
+		require.NoError(t, err)
+		_, err = stor.GetEventByID(ctx, insertedID)
+		require.NoError(t, nil)
+
+		_, err = stor.DeleteEventsBeforeDate(ctx, time.Now())
+		require.NoError(t, err)
+		_, err = stor.GetEventByID(ctx, insertedID)
+		require.True(t, errors.Is(err, storage.ErrNotFound))
+	})
+
+	t.Run("get by notification date period", func(t *testing.T) {
+		stor := NewEventStorage()
+		ctx := context.Background()
+
+		e := storage.Event{ID: 1, StartDate: time.Now().Add(-time.Minute)}
+
+		_, err := stor.CreateEvent(ctx, e)
+		require.NoError(t, err)
+
+		events, err := stor.GetEventsByNotificationDatePeriod(ctx, time.Now().Add(-3*time.Minute), time.Now().Add(-2*time.Minute))
+		require.NoError(t, err)
+		require.Empty(t, events)
+
+		events, err = stor.GetEventsByNotificationDatePeriod(ctx, time.Now().Add(-3*time.Minute), time.Now())
+		require.NoError(t, err)
+		require.NotEmpty(t, events)
 	})
 
 	t.Run("create two events in one date", func(t *testing.T) {

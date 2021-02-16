@@ -15,7 +15,7 @@ import (
 	"github.com/sterligov/otus_homework/hw12_13_14_15_calendar/internal/usecase/calendar"
 )
 
-func setup(*config.Config) (*server.Server, func(), error) {
+func setup(cfg *config.Config) (*server.Server, func(), error) {
 	panic(wire.Build(
 		wire.Bind(new(service.EventUseCase), new(*calendar.EventUseCase)),
 		wire.Bind(new(pb.EventServiceServer), new(*service.EventServiceServer)),

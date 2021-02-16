@@ -1,5 +1,3 @@
-//go:generate protoc -I${GOPATH}/pkg/mod/github.com/grpc-ecosystem/grpc-gateway/v2@v2.0.1/third_party/googleapis -I ./../../../../ --go_out ./../pb --go-grpc_out ./../pb ./../../../../api/event_service.proto
-//go:generate protoc -I${GOPATH}/pkg/mod/github.com/grpc-ecosystem/grpc-gateway/v2@v2.0.1/third_party/googleapis -I ./../../../../ --grpc-gateway_out ./../pb --grpc-gateway_opt logtostderr=true --grpc-gateway_opt generate_unbound_methods=true ./../../../../api/event_service.proto
 package service
 
 import (
@@ -47,8 +45,8 @@ func NewEventServiceServer(eventUseCase EventUseCase, storageConn StorageConnect
 	}
 }
 
-func (es *EventServiceServer) GetEventByID(ctx context.Context, eid *pb.EventID) (*pb.Event, error) {
-	e, err := es.eventUseCase.GetEventByID(ctx, eid.Id)
+func (es *EventServiceServer) GetEventByID(ctx context.Context, r *pb.GetEventByIDRequest) (*pb.GetEventByIDResponse, error) {
+	e, err := es.eventUseCase.GetEventByID(ctx, r.Id)
 	if errors.Is(err, storage.ErrNotFound) {
 		return nil, status.Errorf(codes.NotFound, "event not found")
 	}
@@ -56,70 +54,70 @@ func (es *EventServiceServer) GetEventByID(ctx context.Context, eid *pb.EventID)
 		return nil, err
 	}
 
-	return ToEvent(e), nil
+	return &pb.GetEventByIDResponse{Event: ToEvent(e)}, nil
 }
 
-func (es *EventServiceServer) CreateEvent(ctx context.Context, pbEvent *pb.Event) (*pb.Inserted, error) {
-	insertedID, err := es.eventUseCase.CreateEvent(ctx, FromEvent(pbEvent))
+func (es *EventServiceServer) CreateEvent(ctx context.Context, r *pb.CreateEventRequest) (*pb.CreateEventResponse, error) {
+	insertedID, err := es.eventUseCase.CreateEvent(ctx, FromEvent(r.Event))
 	if errors.Is(err, storage.ErrDateBusy) {
-		return nil, status.Errorf(codes.InvalidArgument, "date %s already busy", pbEvent.StartDate.AsTime())
+		return nil, status.Errorf(codes.InvalidArgument, "date %s already busy", r.Event.StartDate.AsTime())
 	}
 	if err != nil {
 		return nil, err
 	}
 
-	return &pb.Inserted{InsertedID: insertedID}, nil
+	return &pb.CreateEventResponse{InsertedID: insertedID}, nil
 }
 
-func (es *EventServiceServer) UpdateEvent(ctx context.Context, e *pb.Event) (*pb.Affected, error) {
-	affected, err := es.eventUseCase.UpdateEvent(ctx, e.Id, FromEvent(e))
+func (es *EventServiceServer) UpdateEvent(ctx context.Context, r *pb.UpdateEventRequest) (*pb.UpdateEventResponse, error) {
+	affected, err := es.eventUseCase.UpdateEvent(ctx, r.Id, FromEvent(r.Event))
 	if errors.Is(err, storage.ErrDateBusy) {
-		return nil, status.Errorf(codes.InvalidArgument, "date %s already busy", e.StartDate.AsTime())
+		return nil, status.Errorf(codes.InvalidArgument, "date %s already busy", r.Event.StartDate.AsTime())
 	}
 	if err != nil {
 		return nil, err
 	}
 
-	return &pb.Affected{Affected: affected}, nil
+	return &pb.UpdateEventResponse{Affected: affected}, nil
 }
 
-func (es *EventServiceServer) DeleteEvent(ctx context.Context, eid *pb.EventID) (*pb.Affected, error) {
-	affected, err := es.eventUseCase.DeleteEvent(ctx, eid.Id)
+func (es *EventServiceServer) DeleteEvent(ctx context.Context, r *pb.DeleteEventRequest) (*pb.DeleteEventResponse, error) {
+	affected, err := es.eventUseCase.DeleteEvent(ctx, r.Id)
 	if err != nil {
 		return nil, err
 	}
 
-	return &pb.Affected{Affected: affected}, nil
+	return &pb.DeleteEventResponse{Affected: affected}, nil
 }
 
-func (es *EventServiceServer) GetUserDayEvents(ctx context.Context, pr *pb.UserPeriodEventRequest) (*pb.Events, error) {
-	events, err := es.eventUseCase.GetUserDayEvents(ctx, pr.UserID, pr.Date.AsTime())
+func (es *EventServiceServer) GetUserDayEvents(ctx context.Context, r *pb.UserPeriodEventRequest) (*pb.EventListResponse, error) {
+	events, err := es.eventUseCase.GetUserDayEvents(ctx, r.UserID, r.Date.AsTime())
 	if err != nil {
 		return nil, err
 	}
 
-	return ToEvents(events), nil
+	return &pb.EventListResponse{Events: ToEventSlice(events)}, nil
 }
 
-func (es *EventServiceServer) GetUserWeekEvents(ctx context.Context, pr *pb.UserPeriodEventRequest) (*pb.Events, error) {
-	events, err := es.eventUseCase.GetUserWeekEvents(ctx, pr.UserID, pr.Date.AsTime())
+func (es *EventServiceServer) GetUserWeekEvents(ctx context.Context, r *pb.UserPeriodEventRequest) (*pb.EventListResponse, error) {
+	events, err := es.eventUseCase.GetUserWeekEvents(ctx, r.UserID, r.Date.AsTime())
 	if err != nil {
 		return nil, err
 	}
 
-	return ToEvents(events), nil
+	return &pb.EventListResponse{Events: ToEventSlice(events)}, nil
 }
 
-func (es *EventServiceServer) GetUserMonthEvents(ctx context.Context, pr *pb.UserPeriodEventRequest) (*pb.Events, error) {
-	events, err := es.eventUseCase.GetUserMonthEvents(ctx, pr.UserID, pr.Date.AsTime())
+func (es *EventServiceServer) GetUserMonthEvents(ctx context.Context, r *pb.UserPeriodEventRequest) (*pb.EventListResponse, error) {
+	events, err := es.eventUseCase.GetUserMonthEvents(ctx, r.UserID, r.Date.AsTime())
 	if err != nil {
 		return nil, err
 	}
 
-	return ToEvents(events), nil
+	return &pb.EventListResponse{Events: ToEventSlice(events)}, nil
 }
 
-func (es *EventServiceServer) Health(ctx context.Context, _ *pb.Empty) (*pb.HealthResponse, error) {
+func (es *EventServiceServer) Health(ctx context.Context, _ *pb.HealthRequest) (*pb.HealthResponse, error) {
 	ctx, cancel := context.WithTimeout(ctx, 4*time.Second)
 	defer cancel()
 
@@ -154,11 +152,11 @@ func FromEvent(e *pb.Event) model.Event {
 	}
 }
 
-func ToEvents(events []model.Event) *pb.Events {
-	pbEvents := &pb.Events{}
+func ToEventSlice(events []model.Event) []*pb.Event {
+	pbEvents := make([]*pb.Event, 0, len(events))
 
 	for _, e := range events {
-		pbEvents.Events = append(pbEvents.Events, ToEvent(e))
+		pbEvents = append(pbEvents, ToEvent(e))
 	}
 
 	return pbEvents

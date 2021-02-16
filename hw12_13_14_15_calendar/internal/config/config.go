@@ -26,17 +26,27 @@ type Config struct {
 		Addr string `yaml:"addr"`
 	} `yaml:"grpc"`
 
+	StorageType string `yaml:"storage_type"`
+
 	Database struct {
 		Addr   string `yaml:"connection_addr"`
 		Driver string `yaml:"driver"`
-	} `yaml:"database"`
+	}
 
 	Logger struct {
 		Path  string `yaml:"path"`
 		Level string `yaml:"level"`
-	} `yaml:"logger"`
+	}
 
-	StorageType string `yaml:"storage_type"`
+	AMQP struct {
+		ConnectionAddr      string        `yaml:"connection_addr"`
+		QueueName           string        `yaml:"queue_name"`
+		MaxReconnectRetries int           `yaml:"max_reconnect_retries"`
+		ReconnectInterval   time.Duration `yaml:"reconnect_interval"`
+		HandlersNumber      int           `yaml:"handlers_number"`
+	}
+
+	EventScanFreq time.Duration `yaml:"event_scan_frequency"`
 }
 
 func New(cfgFilename string) (*Config, error) {

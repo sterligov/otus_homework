@@ -57,6 +57,27 @@ func (_m *EventRepository) DeleteEvent(ctx context.Context, id storage.EventID) 
 	return r0, r1
 }
 
+// DeleteEventsBeforeDate provides a mock function with given fields: ctx, date
+func (_m *EventRepository) DeleteEventsBeforeDate(ctx context.Context, date time.Time) (int64, error) {
+	ret := _m.Called(ctx, date)
+
+	var r0 int64
+	if rf, ok := ret.Get(0).(func(context.Context, time.Time) int64); ok {
+		r0 = rf(ctx, date)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, time.Time) error); ok {
+		r1 = rf(ctx, date)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetEventByID provides a mock function with given fields: ctx, id
 func (_m *EventRepository) GetEventByID(ctx context.Context, id storage.EventID) (storage.Event, error) {
 	ret := _m.Called(ctx, id)
@@ -71,6 +92,29 @@ func (_m *EventRepository) GetEventByID(ctx context.Context, id storage.EventID)
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, storage.EventID) error); ok {
 		r1 = rf(ctx, id)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetEventsByNotificationDatePeriod provides a mock function with given fields: ctx, start, end
+func (_m *EventRepository) GetEventsByNotificationDatePeriod(ctx context.Context, start time.Time, end time.Time) ([]storage.Event, error) {
+	ret := _m.Called(ctx, start, end)
+
+	var r0 []storage.Event
+	if rf, ok := ret.Get(0).(func(context.Context, time.Time, time.Time) []storage.Event); ok {
+		r0 = rf(ctx, start, end)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]storage.Event)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, time.Time, time.Time) error); ok {
+		r1 = rf(ctx, start, end)
 	} else {
 		r1 = ret.Error(1)
 	}

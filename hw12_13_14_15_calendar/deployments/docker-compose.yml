@@ -14,3 +14,12 @@ services:
       - ./mysql/data:/var/lib/mysql
     ports:
       - ${DB_PORT}:3306
+
+  calendar-rabbitmq:
+    image: rabbitmq:3-management-alpine
+    volumes:
+      - ./rabbitmq/data:/var/lib/rabbitmq/mnesia/rabbit@my-rabbit
+      - ./rabbitmq/logs:/var/log/rabbitmq/log
+    ports:
+      - 15672:15672
+      - 5672:5672
