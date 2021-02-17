@@ -115,6 +115,26 @@ WHERE
 	return affected, nil
 }
 
+func (es *EventStorage) UpdateIsNotified(ctx context.Context, id storage.EventID, isNotified byte) error {
+	query := `
+UPDATE
+	event
+SET
+	is_notified = :is_notified
+WHERE
+	id = :id`
+
+	_, err := es.db.NamedExecContext(ctx, query, map[string]interface{}{
+		"is_notified": isNotified,
+		"id":          id,
+	})
+	if err != nil {
+		return fmt.Errorf("update is_notified failed: %w", err)
+	}
+
+	return nil
+}
+
 func (es *EventStorage) DeleteEvent(ctx context.Context, id storage.EventID) (int64, error) {
 	query := `DELETE FROM event WHERE id = ?`
 
@@ -155,7 +175,7 @@ ORDER BY
 	}
 	defer func() {
 		if err := rows.Close(); err != nil {
-			logrus.Errorf("rows close failed: %s", err)
+			logrus.WithError(err).Error("rows close failed")
 		}
 	}()
 
@@ -189,7 +209,7 @@ SELECT
 FROM
 	event
 WHERE
-    notification_date BETWEEN ? AND ?
+    is_notified = 0 AND notification_date BETWEEN ? AND ?
 ORDER BY
 	notification_date`
 
@@ -226,8 +246,8 @@ ORDER BY
 	return events, nil
 }
 
-func (es *EventStorage) DeleteEventsBeforeDate(ctx context.Context, date time.Time) (int64, error) {
-	query := `DELETE FROM event WHERE start_date <= ?`
+func (es *EventStorage) DeleteNotifiedEventsBeforeDate(ctx context.Context, date time.Time) (int64, error) {
+	query := `DELETE FROM event WHERE start_date <= ? AND is_notified = 1`
 
 	res, err := es.db.ExecContext(ctx, query, date)
 	if err != nil {

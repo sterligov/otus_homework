@@ -30,8 +30,6 @@ run-scheduler: build-scheduler
 run-sender: build-sender
 	$(SENDER_BIN) -config ./configs/sender_config.yml
 
-run: run-scheduler run-calendar run-sender
-
 build-calendar-img:
 	docker build \
 		--build-arg=LDFLAGS="$(LDFLAGS)" \

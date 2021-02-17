@@ -23,21 +23,27 @@ type (
 		Shutdown() error
 	}
 
+	EventUseCase interface {
+		Notify(ctx context.Context, id int64) error
+	}
+
 	Sender struct {
-		queue Queue
+		queue        Queue
+		eventUseCase EventUseCase
 	}
 )
 
-func NewSender(queue Queue) *Sender {
+func NewSender(queue Queue, eventUseCase EventUseCase) *Sender {
 	return &Sender{
-		queue: queue,
+		queue:        queue,
+		eventUseCase: eventUseCase,
 	}
 }
 
 func (s *Sender) Run(ctx context.Context) error {
 	logrus.Infof("Start sender...")
 
-	return s.queue.Consume(ctx, Handle)
+	return s.queue.Consume(ctx, s.Handle)
 }
 
 func (s *Sender) Shutdown() error {
@@ -46,7 +52,7 @@ func (s *Sender) Shutdown() error {
 	return s.queue.Shutdown()
 }
 
-func Handle(ctx context.Context, msgs <-chan amqp.Delivery) {
+func (s *Sender) Handle(ctx context.Context, msgs <-chan amqp.Delivery) {
 	for {
 		select {
 		case <-ctx.Done():
@@ -56,16 +62,24 @@ func Handle(ctx context.Context, msgs <-chan amqp.Delivery) {
 				return
 			}
 
+			logrus.Infof("received message from queue")
+
 			e := &Event{}
 
 			if err := json.Unmarshal(msg.Body, e); err != nil {
-				logrus.Errorf("unmarshal failed: %v", err)
+				logrus.WithError(err).Errorf("unmarshal failed")
+				return
 			}
 
-			logrus.Infof("received message from queue: %v", e)
-
 			if err := msg.Ack(false); err != nil {
-				logrus.Errorf("%s: ack failed: %v", msg.Body, err)
+				logrus.WithError(err).Error("ack failed")
+			}
+
+			if err := s.eventUseCase.Notify(ctx, e.ID); err != nil {
+				logrus.
+					WithField("event", e).
+					WithError(err).
+					Error("notify failed")
 			}
 		}
 	}

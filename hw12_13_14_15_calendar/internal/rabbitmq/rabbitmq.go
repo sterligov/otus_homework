@@ -84,7 +84,7 @@ func (r *Rabbit) Consume(ctx context.Context, handler Handler) error {
 	}
 }
 
-func (r *Rabbit) PublishAsJSON(ctx context.Context, msg interface{}) error {
+func (r *Rabbit) Publish(ctx context.Context, marshaler json.Marshaler) error {
 	select {
 	case <-ctx.Done():
 		return ctx.Err()
@@ -101,7 +101,7 @@ func (r *Rabbit) PublishAsJSON(ctx context.Context, msg interface{}) error {
 	default:
 	}
 
-	data, err := json.Marshal(msg)
+	data, err := marshaler.MarshalJSON()
 	if err != nil {
 		return fmt.Errorf("marshal json failed: %w", err)
 	}

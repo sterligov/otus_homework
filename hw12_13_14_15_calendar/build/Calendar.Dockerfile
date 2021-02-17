@@ -16,9 +16,9 @@ COPY . ${CODE_DIR}
 # Собираем статический бинарник Go (без зависимостей на Си API),
 # иначе он не будет работать в apline образе.
 ARG LDFLAGS
-RUN cd cmd/calendar && CGO_ENABLED=0 go build \
+RUN CGO_ENABLED=0 go build \
         -ldflags "$LDFLAGS" \
-        -o ${BIN_FILE}
+        -o ${BIN_FILE} ./cmd/calendar
 
 # На выходе тонкий образ
 FROM alpine:3.9

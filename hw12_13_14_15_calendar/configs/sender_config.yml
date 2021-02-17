@@ -8,3 +8,9 @@ amqp:
   max_reconnect_retries: 10
   reconnect_interval: 1s
   handlers_number: 3
+
+database:
+  connection_addr: calendar_user:calendar_pass@tcp(localhost:3311)/calendar?parseTime=true
+  driver: mysql
+
+storage_type: sql

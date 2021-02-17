@@ -57,8 +57,8 @@ func (_m *EventRepository) DeleteEvent(ctx context.Context, id storage.EventID) 
 	return r0, r1
 }
 
-// DeleteEventsBeforeDate provides a mock function with given fields: ctx, date
-func (_m *EventRepository) DeleteEventsBeforeDate(ctx context.Context, date time.Time) (int64, error) {
+// DeleteNotifiedEventsBeforeDate provides a mock function with given fields: ctx, date
+func (_m *EventRepository) DeleteNotifiedEventsBeforeDate(ctx context.Context, date time.Time) (int64, error) {
 	ret := _m.Called(ctx, date)
 
 	var r0 int64
@@ -164,4 +164,18 @@ func (_m *EventRepository) UpdateEvent(ctx context.Context, event storage.Event)
 	}
 
 	return r0, r1
+}
+
+// UpdateIsNotified provides a mock function with given fields: ctx, id, isNotified
+func (_m *EventRepository) UpdateIsNotified(ctx context.Context, id storage.EventID, isNotified byte) error {
+	ret := _m.Called(ctx, id, isNotified)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, storage.EventID, byte) error); ok {
+		r0 = rf(ctx, id, isNotified)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }

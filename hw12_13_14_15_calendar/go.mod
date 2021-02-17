@@ -4,6 +4,7 @@ go 1.15
 
 require (
 	github.com/go-sql-driver/mysql v1.5.0
+	github.com/go-testfixtures/testfixtures/v3 v3.5.0 // indirect
 	github.com/golang/protobuf v1.4.3
 	github.com/google/wire v0.4.0
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.0.1
@@ -11,10 +12,11 @@ require (
 	github.com/jmoiron/sqlx v1.2.0
 	github.com/lib/pq v1.8.0 // indirect
 	github.com/mattn/go-sqlite3 v1.14.4 // indirect
+	github.com/nats-io/nats.go v1.10.0 // indirect
 	github.com/sirupsen/logrus v1.7.0
 	github.com/streadway/amqp v1.0.0
-	github.com/stretchr/objx v0.1.1 // indirect
 	github.com/stretchr/testify v1.6.1
+	github.com/vektra/mockery/v2 v2.6.0 // indirect
 	golang.org/x/net v0.0.0-20201209123823-ac852fbbde11 // indirect
 	golang.org/x/sys v0.0.0-20201211090839-8ad439b19e0f // indirect
 	golang.org/x/text v0.3.4 // indirect

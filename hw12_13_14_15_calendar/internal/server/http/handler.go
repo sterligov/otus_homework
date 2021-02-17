@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"net/http"
 
-	"google.golang.org/protobuf/encoding/protojson"
-
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/sterligov/otus_homework/hw12_13_14_15_calendar/internal/config"
 	"github.com/sterligov/otus_homework/hw12_13_14_15_calendar/internal/server/grpc/pb"
 	"google.golang.org/grpc"
+	"google.golang.org/protobuf/encoding/protojson"
 )
 
 func NewHandler(cfg *config.Config) (http.Handler, error) {

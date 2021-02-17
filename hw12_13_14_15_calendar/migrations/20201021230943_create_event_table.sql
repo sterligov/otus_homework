@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS event (
     start_date DATETIME NOT NULL,
     end_date DATETIME NOT NULL,
     notification_date DATETIME NOT NULL,
+    is_notified TINYINT DEFAULT 0,
     UNIQUE (user_id, start_date)
 ) ENGINE=INNODB;
 

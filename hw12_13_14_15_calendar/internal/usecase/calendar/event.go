@@ -15,8 +15,9 @@ type EventRepository interface {
 	UpdateEvent(ctx context.Context, event storage.Event) (int64, error)
 	DeleteEvent(ctx context.Context, id storage.EventID) (int64, error)
 	GetEventsByNotificationDatePeriod(ctx context.Context, start, end time.Time) ([]storage.Event, error)
-	DeleteEventsBeforeDate(ctx context.Context, date time.Time) (int64, error)
+	DeleteNotifiedEventsBeforeDate(ctx context.Context, date time.Time) (int64, error)
 	GetUserEventsByPeriod(ctx context.Context, uid storage.UserID, start, end time.Time) ([]storage.Event, error)
+	UpdateIsNotified(ctx context.Context, id storage.EventID, isNotified byte) error
 }
 
 type EventUseCase struct {
@@ -98,8 +99,8 @@ func (eu *EventUseCase) GetUserMonthEvents(ctx context.Context, uid int64, date 
 	return model.ToEventSlice(events), nil
 }
 
-func (eu *EventUseCase) DeleteEventsBeforeDate(ctx context.Context, date time.Time) (int64, error) {
-	affected, err := eu.eventRepository.DeleteEventsBeforeDate(ctx, date)
+func (eu *EventUseCase) DeleteNotifiedEventsBeforeDate(ctx context.Context, date time.Time) (int64, error) {
+	affected, err := eu.eventRepository.DeleteNotifiedEventsBeforeDate(ctx, date)
 	if err != nil {
 		return 0, err
 	}
@@ -114,4 +115,8 @@ func (eu *EventUseCase) GetEventsByNotificationDatePeriod(ctx context.Context, s
 	}
 
 	return model.ToEventSlice(events), nil
+}
+
+func (eu *EventUseCase) Notify(ctx context.Context, id int64) error {
+	return eu.eventRepository.UpdateIsNotified(ctx, storage.EventID(id), 1)
 }

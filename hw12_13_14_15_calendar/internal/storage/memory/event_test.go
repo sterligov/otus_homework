@@ -78,24 +78,39 @@ func TestEventStorage(t *testing.T) {
 		require.Equal(t, int64(1), affected)
 	})
 
-	t.Run("delete before date", func(t *testing.T) {
+	t.Run("delete notified before date", func(t *testing.T) {
 		stor := NewEventStorage()
 		ctx := context.Background()
 
-		e := storage.Event{ID: 1, StartDate: time.Now().Add(-time.Minute)}
+		e := storage.Event{ID: 1, StartDate: time.Now().Add(-time.Minute), IsNotified: 1}
 
 		insertedID, err := stor.CreateEvent(ctx, e)
 		require.NoError(t, err)
 
-		_, err = stor.DeleteEventsBeforeDate(ctx, time.Now().Add(-2*time.Minute))
+		_, err = stor.DeleteNotifiedEventsBeforeDate(ctx, time.Now().Add(-2*time.Minute))
 		require.NoError(t, err)
+
 		_, err = stor.GetEventByID(ctx, insertedID)
 		require.NoError(t, nil)
 
-		_, err = stor.DeleteEventsBeforeDate(ctx, time.Now())
+		_, err = stor.DeleteNotifiedEventsBeforeDate(ctx, time.Now())
 		require.NoError(t, err)
 		_, err = stor.GetEventByID(ctx, insertedID)
 		require.True(t, errors.Is(err, storage.ErrNotFound))
+
+		t.Run("is notified 0", func(t *testing.T) {
+			e.ID = 2
+			e.IsNotified = 0
+			insertedID, err = stor.CreateEvent(ctx, e)
+			require.NoError(t, err)
+
+			_, err = stor.DeleteNotifiedEventsBeforeDate(ctx, time.Now().Add(-2*time.Minute))
+			require.NoError(t, err)
+
+			event, err := stor.GetEventByID(ctx, insertedID)
+			require.NoError(t, err)
+			require.NotEmpty(t, event)
+		})
 	})
 
 	t.Run("get by notification date period", func(t *testing.T) {
@@ -158,6 +173,21 @@ func TestEventStorage(t *testing.T) {
 
 		_, err := stor.GetEventByID(context.Background(), 1)
 		require.Equal(t, storage.ErrNotFound, err)
+	})
+
+	t.Run("update is notified", func(t *testing.T) {
+		stor := NewEventStorage()
+		ctx := context.Background()
+
+		insertedID, err := stor.CreateEvent(ctx, storage.Event{UserID: 1})
+		require.NoError(t, err)
+
+		err = stor.UpdateIsNotified(ctx, insertedID, 1)
+		require.NoError(t, err)
+
+		e, err := stor.GetEventByID(ctx, insertedID)
+		require.NoError(t, err)
+		require.Equal(t, byte(1), e.IsNotified)
 	})
 
 	t.Run("complex", func(t *testing.T) {
