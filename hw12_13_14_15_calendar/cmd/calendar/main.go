@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/sirupsen/logrus"
 	"github.com/sterligov/otus_homework/hw12_13_14_15_calendar/internal/config"
@@ -56,25 +57,30 @@ func main() {
 	}
 	defer cleanup()
 
+	signals := make(chan os.Signal, 1)
+	signal.Notify(signals, syscall.SIGINT)
+
 	go func() {
 		if err := server.GRPC.Start(); err != nil {
 			logrus.Warnf("grpc server start failed: %s", err)
+			log.Fatalln(err)
 		}
 	}()
 
 	go func() {
 		if err := server.HTTP.Start(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			logrus.Warnf("http server start failed: %s", err)
+			log.Fatalln(err)
 		}
 	}()
-
-	signals := make(chan os.Signal, 1)
-	signal.Notify(signals, syscall.SIGINT)
 
 	<-signals
 	signal.Stop(signals)
 
-	if err := server.HTTP.Stop(context.Background()); err != nil && !errors.Is(err, http.ErrServerClosed) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	if err := server.HTTP.Stop(ctx); err != nil && !errors.Is(err, http.ErrServerClosed) {
 		logrus.Warnf("http server stop failed: %s", err)
 	}
 

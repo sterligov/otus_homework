@@ -4,7 +4,7 @@ go 1.15
 
 require (
 	github.com/go-sql-driver/mysql v1.5.0
-	github.com/go-testfixtures/testfixtures/v3 v3.5.0 // indirect
+	github.com/go-testfixtures/testfixtures/v3 v3.5.0
 	github.com/golang/protobuf v1.4.3
 	github.com/google/wire v0.4.0
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.0.1

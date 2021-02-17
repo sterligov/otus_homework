@@ -10,6 +10,12 @@ SENDER_DOCKER_IMG="sender:develop"
 GIT_HASH := $(shell git log --format="%h" -n 1)
 LDFLAGS := -X main.release="develop" -X main.buildDate=$(shell date -u +%Y-%m-%dT%H:%M:%S) -X main.gitHash=$(GIT_HASH)
 
+up:
+	docker-compose --env-file deployments/.env -f deployments/docker-compose.yml up -d --build --remove-orphans
+
+down:
+	docker-compose --env-file deployments/.env -f deployments/docker-compose.yml down
+
 build: build-calendar build-scheduler build-sender
 
 build-calendar:
@@ -74,16 +80,13 @@ wire:
 	wire cmd/scheduler/wire.go
 	wire cmd/sender/wire.go
 
-docker-up:
-	cd deployments && docker-compose up -d
-
-docker-stop:
-	cd deployments && docker-compose stop
-
 migrations:
-	goose -dir migrations mysql "${DB_USER}:${DB_PASSWORD}@tcp(${DB_HOST}:${DB_PORT})/${DB_NAME}?parseTime=true" up
+	goose -dir migrations mysql "${DB_USER}:${DB_PASSWORD}@tcp(localhost:${DB_PORT})/${DB_NAME}?parseTime=true" up
 
 generate:
 	go generate ./...
+
+integration-tests:
+	  chmod +x ./scripts/integration-test.sh && ./scripts/integration-test.sh
 
 .PHONY: migrations build run build-img run-img version test lint

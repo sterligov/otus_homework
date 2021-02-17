@@ -13,10 +13,7 @@ import (
 	"github.com/sterligov/otus_homework/hw12_13_14_15_calendar/internal/storage"
 )
 
-const (
-	dateLayout        = "2006-01-02 15:04:05"
-	mysqlUniqueErrNum = 1062
-)
+const mysqlUniqueErrNum = 1062
 
 type EventStorage struct {
 	db *sqlx.DB
@@ -166,10 +163,7 @@ WHERE
 ORDER BY
 	start_date`
 
-	sdate := startDate.Format(dateLayout)
-	edate := endDate.Format(dateLayout)
-
-	rows, err := es.db.QueryxContext(ctx, query, uid, sdate, edate)
+	rows, err := es.db.QueryxContext(ctx, query, uid, startDate, endDate)
 	if err != nil {
 		return nil, fmt.Errorf("fetching events failed: %w", err)
 	}
@@ -213,10 +207,7 @@ WHERE
 ORDER BY
 	notification_date`
 
-	sdate := startDate.Format(dateLayout)
-	edate := endDate.Format(dateLayout)
-
-	rows, err := es.db.QueryxContext(ctx, query, sdate, edate)
+	rows, err := es.db.QueryxContext(ctx, query, startDate, endDate)
 	if err != nil {
 		return nil, fmt.Errorf("fetching events failed: %w", err)
 	}

@@ -32,14 +32,15 @@ func main() {
 	}
 	defer cleanup()
 
+	signals := make(chan os.Signal, 1)
+	signal.Notify(signals, syscall.SIGINT)
+
 	go func() {
 		if err := scheduler.Run(context.Background()); err != nil {
 			logrus.WithError(err).Error("scheduler run failed")
+			log.Fatalln(err)
 		}
 	}()
-
-	signals := make(chan os.Signal, 1)
-	signal.Notify(signals, syscall.SIGINT)
 
 	<-signals
 	signal.Stop(signals)

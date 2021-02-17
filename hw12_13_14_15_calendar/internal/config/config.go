@@ -29,8 +29,13 @@ type Config struct {
 	StorageType string `yaml:"storage_type"`
 
 	Database struct {
-		Addr   string `yaml:"connection_addr"`
-		Driver string `yaml:"driver"`
+		Addr                string        `yaml:"connection_addr"`
+		Driver              string        `yaml:"driver"`
+		MaxReconnectRetries int           `yaml:"max_reconnect_retries"`
+		MaxOpenConns        int           `yaml:"max_open_conns"`
+		MaxIdleConns        int           `yaml:"max_idle_conns"`
+		MaxConnLifetime     time.Duration `yaml:"max_conn_lifetime"`
+		ReconnectTime       time.Duration `yaml:"reconnect_time"`
 	}
 
 	Logger struct {

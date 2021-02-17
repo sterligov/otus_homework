@@ -43,7 +43,7 @@ func NewRabbit(cfg *config.Config) *Rabbit {
 func NewRabbitConnection(cfg *config.Config) (*Rabbit, error) {
 	r := NewRabbit(cfg)
 
-	if err := r.connect(); err != nil {
+	if err := r.reConnect(context.Background()); err != nil {
 		return nil, err
 	}
 
@@ -53,8 +53,8 @@ func NewRabbitConnection(cfg *config.Config) (*Rabbit, error) {
 func (r *Rabbit) Consume(ctx context.Context, handler Handler) error {
 	var err error
 
-	if err = r.connect(); err != nil {
-		return fmt.Errorf("error: %v", err)
+	if err = r.reConnect(ctx); err != nil {
+		return err
 	}
 
 	for {
@@ -145,6 +145,8 @@ func (r *Rabbit) connect() error {
 	if err != nil {
 		return fmt.Errorf("open channel failed: %w", err)
 	}
+
+	logrus.Info("successfully connect")
 
 	return nil
 }

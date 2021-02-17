@@ -61,16 +61,17 @@ func (s *Scheduler) Run(ctx context.Context) error {
 	defer ticker.Stop()
 
 	for {
+		go func() {
+			s.sendNotifications(ctx)
+			s.deleteOldNotifiedEvents(ctx)
+		}()
+
 		select {
 		case <-ctx.Done():
 			logrus.Infof("Stop scheduler...")
 
 			return ctx.Err()
 		case <-ticker.C:
-			go func() {
-				s.sendNotifications(ctx)
-				s.deleteOldNotifiedEvents(ctx)
-			}()
 		}
 	}
 }
