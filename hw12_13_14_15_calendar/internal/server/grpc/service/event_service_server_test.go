@@ -6,12 +6,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/stretchr/testify/mock"
-
 	"github.com/sterligov/otus_homework/hw12_13_14_15_calendar/internal/mocks"
 	"github.com/sterligov/otus_homework/hw12_13_14_15_calendar/internal/model"
 	"github.com/sterligov/otus_homework/hw12_13_14_15_calendar/internal/server/grpc/pb"
 	"github.com/sterligov/otus_homework/hw12_13_14_15_calendar/internal/storage"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"

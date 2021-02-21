@@ -66,11 +66,14 @@ INSERT INTO event(
 
 	res, err := es.db.NamedExecContext(ctx, query, &e)
 	if err != nil {
-		if me, ok := err.(*mysql.MySQLError); ok && me.Number == mysqlUniqueErrNum {
-			return 0, storage.ErrDateBusy
+		var me *mysql.MySQLError
+		if !errors.As(err, &me) {
+			return 0, fmt.Errorf("create event failed: %w", err)
 		}
 
-		return 0, fmt.Errorf("create event failed: %w", err)
+		if me.Number == mysqlUniqueErrNum {
+			return 0, storage.ErrDateBusy
+		}
 	}
 
 	lastID, err := res.LastInsertId()
@@ -97,11 +100,14 @@ WHERE
 
 	res, err := es.db.NamedExecContext(ctx, query, &e)
 	if err != nil {
-		if me, ok := err.(*mysql.MySQLError); ok && me.Number == mysqlUniqueErrNum {
-			return 0, storage.ErrDateBusy
+		var me *mysql.MySQLError
+		if !errors.As(err, &me) {
+			return 0, fmt.Errorf("update event failed: %w", err)
 		}
 
-		return 0, fmt.Errorf("update event failed: %w", err)
+		if me.Number == mysqlUniqueErrNum {
+			return 0, storage.ErrDateBusy
+		}
 	}
 
 	affected, err := res.RowsAffected()

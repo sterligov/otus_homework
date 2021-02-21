@@ -66,7 +66,6 @@ func main() {
 			log.Fatalln(err)
 		}
 	}()
-
 	go func() {
 		if err := server.HTTP.Start(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			logrus.Warnf("http server start failed: %s", err)
@@ -83,6 +82,5 @@ func main() {
 	if err := server.HTTP.Stop(ctx); err != nil && !errors.Is(err, http.ErrServerClosed) {
 		logrus.Warnf("http server stop failed: %s", err)
 	}
-
 	server.GRPC.Stop()
 }

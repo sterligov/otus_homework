@@ -6,7 +6,6 @@ docker rm calendar_migrations
 docker-compose --env-file deployments/.env -f deployments/docker-compose.yml up -d --build
 while [ "$(docker inspect calendar_migrations --format='{{.State.ExitCode}}')" != "0" ]; do :; done
 /bin/bash ${DIR}/wait-for-it.sh localhost:5672 -t 60
-/bin/bash ${DIR}/wait-for-it.sh localhost:3311 -t 60
 
 docker-compose -f deployments/docker-compose.test.yml up --build
 EXIT_CODE=$?

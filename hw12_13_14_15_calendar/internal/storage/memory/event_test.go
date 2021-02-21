@@ -13,7 +13,7 @@ import (
 
 const dateLayout = "2006-01-02 15:04"
 
-func TestEventStorage(t *testing.T) {
+func TestEventStorage(t *testing.T) { //nolint:funlen
 	t.Run("create", func(t *testing.T) {
 		stor := NewEventStorage()
 		ctx := context.Background()

@@ -39,6 +39,7 @@ func FromEvent(e Event) storage.Event {
 		StartDate:        e.StartDate,
 		EndDate:          e.EndDate,
 		NotificationDate: e.NotificationDate,
+		IsNotified:       e.IsNotified,
 	}
 }
 

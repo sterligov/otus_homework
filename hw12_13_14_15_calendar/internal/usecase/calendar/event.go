@@ -2,6 +2,7 @@ package calendar
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/jinzhu/now"
@@ -33,7 +34,7 @@ func NewEventUseCase(eventRepository EventRepository) *EventUseCase {
 func (eu *EventUseCase) GetEventByID(ctx context.Context, id int64) (model.Event, error) {
 	e, err := eu.eventRepository.GetEventByID(ctx, storage.EventID(id))
 	if err != nil {
-		return model.Event{}, err
+		return model.Event{}, fmt.Errorf("cannot get event by id: %w", err)
 	}
 
 	return model.ToEvent(e), nil
@@ -42,7 +43,7 @@ func (eu *EventUseCase) GetEventByID(ctx context.Context, id int64) (model.Event
 func (eu *EventUseCase) CreateEvent(ctx context.Context, e model.Event) (int64, error) {
 	insertedID, err := eu.eventRepository.CreateEvent(ctx, model.FromEvent(e))
 	if err != nil {
-		return 0, err
+		return 0, fmt.Errorf("cannot create event: %w", err)
 	}
 
 	return int64(insertedID), nil
