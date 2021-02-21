@@ -3,12 +3,11 @@ package factory
 import (
 	"testing"
 
-	"github.com/stretchr/testify/require"
-
 	"github.com/sterligov/otus_homework/hw12_13_14_15_calendar/internal/config"
 	memorystorage "github.com/sterligov/otus_homework/hw12_13_14_15_calendar/internal/storage/memory"
 	sqlstorage "github.com/sterligov/otus_homework/hw12_13_14_15_calendar/internal/storage/sql"
 	"github.com/sterligov/otus_homework/hw12_13_14_15_calendar/internal/usecase/calendar"
+	"github.com/stretchr/testify/require"
 )
 
 func TestCreateEventRepository(t *testing.T) {

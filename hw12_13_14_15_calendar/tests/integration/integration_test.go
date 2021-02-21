@@ -136,7 +136,7 @@ func (s *Suite) TestDeleteEventByID() {
 		s.Require().Equal(int64(1), resp.Affected)
 
 		_, err = s.fetchEvent(id)
-		s.Require().Error(sql.ErrNoRows)
+		s.Require().True(errors.Is(err, sql.ErrNoRows))
 	})
 
 	s.Run("not existing event", func() {

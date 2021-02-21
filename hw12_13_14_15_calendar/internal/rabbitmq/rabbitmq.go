@@ -78,7 +78,7 @@ func (r *Rabbit) Consume(ctx context.Context, handler Handler) error {
 			logrus.WithError(amqpErr).Warn("close connection")
 
 			if err := r.reConnect(ctx); err != nil {
-				return fmt.Errorf("reconnecting failed: %s", err)
+				return fmt.Errorf("reconnecting failed: %w", err)
 			}
 		}
 	}
@@ -96,7 +96,7 @@ func (r *Rabbit) Publish(ctx context.Context, marshaler json.Marshaler) error {
 		logrus.WithError(amqpErr).Warn("close connection")
 
 		if err := r.reConnect(ctx); err != nil {
-			return fmt.Errorf("reconnecting failed: %s", err)
+			return fmt.Errorf("reconnecting failed: %w", err)
 		}
 	default:
 	}
@@ -121,11 +121,11 @@ func (r *Rabbit) Shutdown() error {
 	r.close()
 
 	if err := r.channel.Cancel("", true); err != nil {
-		return fmt.Errorf("consumer cancel failed: %s", err)
+		return fmt.Errorf("consumer cancel failed: %w", err)
 	}
 
 	if err := r.conn.Close(); err != nil {
-		return fmt.Errorf("AMQP connection close error: %s", err)
+		return fmt.Errorf("AMQP connection close error: %w", err)
 	}
 
 	logrus.Infof("AMQP shutdown")
