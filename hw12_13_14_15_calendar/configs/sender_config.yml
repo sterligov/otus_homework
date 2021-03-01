@@ -3,8 +3,17 @@ logger:
   path: stderr
 
 amqp:
-  connection_addr: "amqp://guest:guest@localhost:5672"
+  connection_addr: amqp://guest:guest@calendar_rabbitmq:5672
   queue_name: event_queue
-  max_reconnect_retries: 10
+  max_reconnect_retries: 20
   reconnect_interval: 1s
   handlers_number: 3
+
+database:
+  connection_addr: calendar_user:calendar_pass@tcp(calendar_db:3306)/calendar?parseTime=true
+  driver: mysql
+  max_open_conns: 5
+  max_idle_conns: 2
+  max_conn_lifetime: 5m
+
+storage_type: sql

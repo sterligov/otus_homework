@@ -15,4 +15,5 @@ type Event struct {
 	StartDate        time.Time `db:"start_date"`
 	EndDate          time.Time `db:"end_date"`
 	NotificationDate time.Time `db:"notification_date"`
+	IsNotified       byte      `db:"is_notified"`
 }

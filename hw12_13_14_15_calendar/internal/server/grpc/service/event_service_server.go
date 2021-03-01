@@ -66,7 +66,7 @@ func (es *EventServiceServer) CreateEvent(ctx context.Context, r *pb.CreateEvent
 		return nil, err
 	}
 
-	return &pb.CreateEventResponse{InsertedID: insertedID}, nil
+	return &pb.CreateEventResponse{InsertedId: insertedID}, nil
 }
 
 func (es *EventServiceServer) UpdateEvent(ctx context.Context, r *pb.UpdateEventRequest) (*pb.UpdateEventResponse, error) {
@@ -131,7 +131,7 @@ func (es *EventServiceServer) Health(ctx context.Context, _ *pb.HealthRequest) (
 func ToEvent(e model.Event) *pb.Event {
 	return &pb.Event{
 		Id:               e.ID,
-		UserID:           e.UserID,
+		UserId:           e.UserID,
 		Title:            e.Title,
 		Description:      e.Description,
 		StartDate:        timestamppb.New(e.StartDate),
@@ -143,7 +143,7 @@ func ToEvent(e model.Event) *pb.Event {
 func FromEvent(e *pb.Event) model.Event {
 	return model.Event{
 		ID:               e.Id,
-		UserID:           e.UserID,
+		UserID:           e.UserId,
 		Title:            e.Title,
 		Description:      e.Description,
 		StartDate:        e.StartDate.AsTime(),

@@ -32,17 +32,20 @@ func main() {
 	}
 	defer cleanup()
 
-	go func() {
-		scheduler.Run(context.Background())
-	}()
-
 	signals := make(chan os.Signal, 1)
 	signal.Notify(signals, syscall.SIGINT)
+
+	go func() {
+		if err := scheduler.Run(context.Background()); err != nil {
+			logrus.WithError(err).Error("scheduler run failed")
+			log.Fatalln(err)
+		}
+	}()
 
 	<-signals
 	signal.Stop(signals)
 
 	if err := scheduler.Shutdown(); err != nil {
-		logrus.Errorf("shutdown failed: %s", err)
+		logrus.WithError(err).Error("shutdown failed")
 	}
 }

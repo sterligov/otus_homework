@@ -9,13 +9,27 @@ import (
 	"github.com/sterligov/otus_homework/hw12_13_14_15_calendar/internal/config"
 	"github.com/sterligov/otus_homework/hw12_13_14_15_calendar/internal/rabbitmq"
 	"github.com/sterligov/otus_homework/hw12_13_14_15_calendar/internal/sender"
+	"github.com/sterligov/otus_homework/hw12_13_14_15_calendar/internal/storage/factory"
+	"github.com/sterligov/otus_homework/hw12_13_14_15_calendar/internal/storage/sql"
+	"github.com/sterligov/otus_homework/hw12_13_14_15_calendar/internal/usecase/calendar"
 )
 
 // Injectors from wire.go:
 
 func setup(configConfig *config.Config) (*sender.Sender, func(), error) {
 	rabbit := rabbitmq.NewRabbit(configConfig)
-	senderSender := sender.NewSender(rabbit)
+	db, cleanup, err := sqlstorage.DatabaseProvider(configConfig)
+	if err != nil {
+		return nil, nil, err
+	}
+	eventRepository, err := factory.CreateEventRepository(configConfig, db)
+	if err != nil {
+		cleanup()
+		return nil, nil, err
+	}
+	eventUseCase := calendar.NewEventUseCase(eventRepository)
+	senderSender := sender.NewSender(rabbit, eventUseCase)
 	return senderSender, func() {
+		cleanup()
 	}, nil
 }

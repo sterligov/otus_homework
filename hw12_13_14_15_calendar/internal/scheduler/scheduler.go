@@ -2,6 +2,7 @@ package scheduler
 
 import (
 	"context"
+	"encoding/json"
 	"time"
 
 	"github.com/sirupsen/logrus"
@@ -17,13 +18,16 @@ type (
 		Date   time.Time
 	}
 
+	EventAlias Event
+
 	EventUseCase interface {
-		DeleteEventsBeforeDate(ctx context.Context, date time.Time) (int64, error)
+		UpdateEvent(ctx context.Context, id int64, e model.Event) (int64, error)
+		DeleteNotifiedEventsBeforeDate(ctx context.Context, date time.Time) (int64, error)
 		GetEventsByNotificationDatePeriod(ctx context.Context, start, end time.Time) ([]model.Event, error)
 	}
 
 	Queue interface {
-		PublishAsJSON(context.Context, interface{}) error
+		Publish(context.Context, json.Marshaler) error
 		Shutdown() error
 	}
 
@@ -33,6 +37,10 @@ type (
 		eventUseCase EventUseCase
 	}
 )
+
+func (e Event) MarshalJSON() ([]byte, error) {
+	return json.Marshal(EventAlias(e))
+}
 
 func NewScheduler(
 	cfg *config.Config,
@@ -46,22 +54,24 @@ func NewScheduler(
 	}
 }
 
-func (s *Scheduler) Run(ctx context.Context) {
+func (s *Scheduler) Run(ctx context.Context) error {
 	logrus.Infof("Start scheduler...")
 
 	ticker := time.NewTicker(s.frequency)
+	defer ticker.Stop()
 
 	for {
+		go func() {
+			s.sendNotifications(ctx)
+			s.deleteOldNotifiedEvents(ctx)
+		}()
+
 		select {
 		case <-ctx.Done():
 			logrus.Infof("Stop scheduler...")
 
-			return
+			return ctx.Err()
 		case <-ticker.C:
-			go func() {
-				s.sendNotifications(ctx)
-				s.deleteOldEvents(ctx)
-			}()
 		}
 	}
 }
@@ -78,31 +88,32 @@ func (s *Scheduler) sendNotifications(ctx context.Context) {
 
 	events, err := s.eventUseCase.GetEventsByNotificationDatePeriod(ctx, sdate, edate)
 	if err != nil {
-		logrus.WithError(err).Errorf("get events by period failed")
+		logrus.WithError(err).Error("get events by period failed")
 		return
 	}
 
 	var published int
 
 	for _, e := range events {
-		if err := s.queue.PublishAsJSON(ctx, ToEvent(e)); err != nil {
+		if err := s.queue.Publish(ctx, ToEvent(e)); err != nil {
 			logrus.
 				WithError(err).
 				WithField("event", e).
-				Errorf("publish as json failed")
+				Error("publish as json failed")
 			continue
 		}
+
 		published++
 	}
 
 	logrus.Infof("%d events were published successfully, %d errors", published, len(events)-published)
 }
 
-func (s *Scheduler) deleteOldEvents(ctx context.Context) {
+func (s *Scheduler) deleteOldNotifiedEvents(ctx context.Context) {
 	t := time.Now().AddDate(-1, 0, 0)
 	log := logrus.WithField("date", t.String())
 
-	affected, err := s.eventUseCase.DeleteEventsBeforeDate(ctx, t)
+	affected, err := s.eventUseCase.DeleteNotifiedEventsBeforeDate(ctx, t)
 	if err != nil {
 		logrus.WithError(err).Error("delete old events failed")
 		return

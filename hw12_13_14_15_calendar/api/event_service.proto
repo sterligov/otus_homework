@@ -10,10 +10,11 @@ message Event {
   int64 id = 1;
   string title = 2;
   string description = 3;
-  int64 userID = 4 [json_name="user_id"];
-  google.protobuf.Timestamp startDate = 5 [json_name="start_date"];
-  google.protobuf.Timestamp endDate = 6 [json_name="end_date"];
-  google.protobuf.Timestamp notificationDate = 7 [json_name="notification_date"];
+  int64 user_id = 4;
+  google.protobuf.Timestamp start_date = 5;
+  google.protobuf.Timestamp end_date = 6;
+  google.protobuf.Timestamp notification_date = 7;
+  int32 is_notified = 8;
 }
 
 message GetEventByIDRequest {
@@ -29,7 +30,7 @@ message CreateEventRequest {
 }
 
 message CreateEventResponse {
-  int64 insertedID = 1 [json_name="inserted_id"];
+  int64 inserted_id = 1;
 }
 
 message UpdateEventRequest {
@@ -51,10 +52,6 @@ message DeleteEventResponse {
 
 message Events {
   repeated Event events = 1;
-}
-
-message Inserted {
-  int64 insertedID = 1 [json_name="inserted_id"];
 }
 
 message HealthResponse {

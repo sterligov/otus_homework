@@ -67,6 +67,21 @@ func (es *EventStorage) UpdateEvent(_ context.Context, event storage.Event) (int
 	return 1, nil
 }
 
+func (es *EventStorage) UpdateIsNotified(_ context.Context, id storage.EventID, isNotified byte) error {
+	es.mu.Lock()
+	defer es.mu.Unlock()
+
+	for k, e := range es.bucket {
+		if e.ID == id {
+			e.IsNotified = isNotified
+			es.bucket[k] = e
+			return nil
+		}
+	}
+
+	return nil
+}
+
 func (es *EventStorage) DeleteEvent(_ context.Context, id storage.EventID) (int64, error) {
 	es.mu.Lock()
 	defer es.mu.Unlock()
@@ -117,14 +132,14 @@ func (es *EventStorage) GetEventsByNotificationDatePeriod(
 	return events, nil
 }
 
-func (es *EventStorage) DeleteEventsBeforeDate(_ context.Context, date time.Time) (int64, error) {
+func (es *EventStorage) DeleteNotifiedEventsBeforeDate(_ context.Context, date time.Time) (int64, error) {
 	es.mu.Lock()
 	defer es.mu.Unlock()
 
 	var deleted int64
 
 	for k, e := range es.bucket {
-		if date.After(e.StartDate) {
+		if date.After(e.StartDate) && e.IsNotified == 1 {
 			delete(es.bucket, k)
 			deleted++
 		}

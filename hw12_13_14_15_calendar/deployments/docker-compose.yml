@@ -1,7 +1,7 @@
-version: "3"
+version: "3.7"
 
 services:
-  calendar-db:
+  calendar_db:
     image: mysql:8.0
     restart: always
     environment:
@@ -11,15 +11,57 @@ services:
       MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
     volumes:
       - ./mysql/my.cnf:/etc/mysql/conf.d/my.cnf
-      - ./mysql/data:/var/lib/mysql
     ports:
       - ${DB_PORT}:3306
 
-  calendar-rabbitmq:
+  calendar_migrations:
+    container_name: calendar_migrations
+    restart: on-failure
+    build:
+      context: ../
+      dockerfile: ./build/Migrations.Dockerfile
+    depends_on:
+      - calendar_db
+
+  calendar_api:
+    build:
+      context: ../
+      dockerfile: ./build/Calendar.Dockerfile
+    restart: always
+    ports:
+      - ${APP_HTTP_PORT}:8081
+      - ${APP_GRPC_PORT}:8082
+    depends_on:
+      - calendar_db
+
+  calendar_scheduler:
+    build:
+      context: ../
+      dockerfile: ./build/Scheduler.Dockerfile
+    restart: always
+    depends_on:
+      - calendar_db
+      - calendar_rabbitmq
+
+  calendar_sender:
+    build:
+      context: ../
+      dockerfile: ./build/Sender.Dockerfile
+    restart: always
+    depends_on:
+      - calendar_db
+      - calendar_rabbitmq
+
+  calendar_rabbitmq:
     image: rabbitmq:3-management-alpine
+    restart: always
     volumes:
       - ./rabbitmq/data:/var/lib/rabbitmq/mnesia/rabbit@my-rabbit
       - ./rabbitmq/logs:/var/log/rabbitmq/log
     ports:
-      - 15672:15672
-      - 5672:5672
+      - ${RABBIT_ADMIN_PORT}:15672
+      - ${RABBIT_PORT}:5672
+
+networks:
+  default:
+    name: calendar_net

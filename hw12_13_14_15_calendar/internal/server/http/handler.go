@@ -9,10 +9,17 @@ import (
 	"github.com/sterligov/otus_homework/hw12_13_14_15_calendar/internal/config"
 	"github.com/sterligov/otus_homework/hw12_13_14_15_calendar/internal/server/grpc/pb"
 	"google.golang.org/grpc"
+	"google.golang.org/protobuf/encoding/protojson"
 )
 
 func NewHandler(cfg *config.Config) (http.Handler, error) {
-	gw := runtime.NewServeMux()
+	jsonPb := &runtime.JSONPb{
+		MarshalOptions: protojson.MarshalOptions{
+			UseProtoNames: true,
+		},
+	}
+
+	gw := runtime.NewServeMux(runtime.WithMarshalerOption(runtime.MIMEWildcard, jsonPb))
 	opts := []grpc.DialOption{grpc.WithInsecure()}
 	err := pb.RegisterEventServiceHandlerFromEndpoint(context.Background(), gw, cfg.GRPC.Addr, opts)
 	if err != nil {

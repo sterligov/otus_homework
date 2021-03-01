@@ -364,7 +364,7 @@ func TestEventUseCase_GetEventsByNotificationDatePeriod(t *testing.T) {
 	})
 }
 
-func TestEventUseCase_DeleteEventsBeforeDate(t *testing.T) {
+func TestEventUseCase_DeleteNotifiedEventsBeforeDate(t *testing.T) {
 	t.Run("ok", func(t *testing.T) {
 		rep := &mocks.EventRepository{}
 
@@ -372,11 +372,11 @@ func TestEventUseCase_DeleteEventsBeforeDate(t *testing.T) {
 		affected := int64(5)
 
 		ctx := context.Background()
-		rep.On("DeleteEventsBeforeDate", ctx, curTime).
+		rep.On("DeleteNotifiedEventsBeforeDate", ctx, curTime).
 			Return(affected, nil)
 
 		useCase := NewEventUseCase(rep)
-		actualAffected, err := useCase.DeleteEventsBeforeDate(ctx, curTime)
+		actualAffected, err := useCase.DeleteNotifiedEventsBeforeDate(ctx, curTime)
 
 		require.NoError(t, err)
 		require.Equal(t, affected, actualAffected)
@@ -389,11 +389,11 @@ func TestEventUseCase_DeleteEventsBeforeDate(t *testing.T) {
 		affected := int64(0)
 
 		ctx := context.Background()
-		rep.On("DeleteEventsBeforeDate", ctx, curTime).
+		rep.On("DeleteNotifiedEventsBeforeDate", ctx, curTime).
 			Return(affected, fmt.Errorf("error"))
 
 		useCase := NewEventUseCase(rep)
-		actualAffected, err := useCase.DeleteEventsBeforeDate(ctx, curTime)
+		actualAffected, err := useCase.DeleteNotifiedEventsBeforeDate(ctx, curTime)
 
 		require.Error(t, err)
 		require.Equal(t, affected, actualAffected)

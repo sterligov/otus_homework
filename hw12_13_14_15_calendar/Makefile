@@ -10,10 +10,13 @@ SENDER_DOCKER_IMG="sender:develop"
 GIT_HASH := $(shell git log --format="%h" -n 1)
 LDFLAGS := -X main.release="develop" -X main.buildDate=$(shell date -u +%Y-%m-%dT%H:%M:%S) -X main.gitHash=$(GIT_HASH)
 
-build:
-	go build -v -o $(CALENDAR_BIN) -ldflags "$(LDFLAGS)" ./cmd/calendar
-	go build -v -o $(SCHEDULER_BIN) -ldflags "$(LDFLAGS)" ./cmd/scheduler
-	go build -v -o $(SENDER_BIN) -ldflags "$(LDFLAGS)" ./cmd/sender
+up:
+	docker-compose --env-file deployments/.env -f deployments/docker-compose.yml up -d --build --remove-orphans
+
+down:
+	docker-compose --env-file deployments/.env -f deployments/docker-compose.yml down
+
+build: build-calendar build-scheduler build-sender
 
 build-calendar:
 	go build -v -o $(CALENDAR_BIN) -ldflags "$(LDFLAGS)" ./cmd/calendar
@@ -32,11 +35,6 @@ run-scheduler: build-scheduler
 
 run-sender: build-sender
 	$(SENDER_BIN) -config ./configs/sender_config.yml
-
-run: build
-	$(CALENDAR_BIN) -config ./configs/calendar_config.yml
-	$(SENDER_BIN) -config ./configs/sender_config.yml
-	$(SCHEDULER_BIN) -config ./configs/scheduler_config.yml
 
 build-calendar-img:
 	docker build \
@@ -72,7 +70,7 @@ test:
 	go test -race ./internal/...
 
 install-lint-deps:
-	(which golangci-lint > /dev/null) || curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell go env GOPATH)/bin v1.30.0
+	(which golangci-lint > /dev/null) || curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell go env GOPATH)/bin v1.37.0
 
 lint: install-lint-deps
 	golangci-lint run ./...
@@ -82,16 +80,13 @@ wire:
 	wire cmd/scheduler/wire.go
 	wire cmd/sender/wire.go
 
-docker-up:
-	cd deployments && docker-compose up -d
-
-docker-stop:
-	cd deployments && docker-compose stop
-
 migrations:
-	goose -dir migrations mysql "${DB_USER}:${DB_PASSWORD}@tcp(${DB_HOST}:${DB_PORT})/${DB_NAME}?parseTime=true" up
+	goose -dir migrations mysql "${DB_USER}:${DB_PASSWORD}@tcp(localhost:${DB_PORT})/${DB_NAME}?parseTime=true" up
 
 generate:
 	go generate ./...
+
+integration-tests:
+	  chmod +x ./scripts/integration-test.sh && ./scripts/integration-test.sh
 
 .PHONY: migrations build run build-img run-img version test lint

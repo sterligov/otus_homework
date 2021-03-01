@@ -43,7 +43,7 @@ func NewRabbit(cfg *config.Config) *Rabbit {
 func NewRabbitConnection(cfg *config.Config) (*Rabbit, error) {
 	r := NewRabbit(cfg)
 
-	if err := r.connect(); err != nil {
+	if err := r.reConnect(context.Background()); err != nil {
 		return nil, err
 	}
 
@@ -53,8 +53,8 @@ func NewRabbitConnection(cfg *config.Config) (*Rabbit, error) {
 func (r *Rabbit) Consume(ctx context.Context, handler Handler) error {
 	var err error
 
-	if err = r.connect(); err != nil {
-		return fmt.Errorf("error: %v", err)
+	if err = r.reConnect(ctx); err != nil {
+		return err
 	}
 
 	for {
@@ -78,13 +78,13 @@ func (r *Rabbit) Consume(ctx context.Context, handler Handler) error {
 			logrus.WithError(amqpErr).Warn("close connection")
 
 			if err := r.reConnect(ctx); err != nil {
-				return fmt.Errorf("reconnecting failed: %s", err)
+				return fmt.Errorf("reconnecting failed: %w", err)
 			}
 		}
 	}
 }
 
-func (r *Rabbit) PublishAsJSON(ctx context.Context, msg interface{}) error {
+func (r *Rabbit) Publish(ctx context.Context, marshaler json.Marshaler) error {
 	select {
 	case <-ctx.Done():
 		return ctx.Err()
@@ -96,12 +96,12 @@ func (r *Rabbit) PublishAsJSON(ctx context.Context, msg interface{}) error {
 		logrus.WithError(amqpErr).Warn("close connection")
 
 		if err := r.reConnect(ctx); err != nil {
-			return fmt.Errorf("reconnecting failed: %s", err)
+			return fmt.Errorf("reconnecting failed: %w", err)
 		}
 	default:
 	}
 
-	data, err := json.Marshal(msg)
+	data, err := marshaler.MarshalJSON()
 	if err != nil {
 		return fmt.Errorf("marshal json failed: %w", err)
 	}
@@ -121,11 +121,11 @@ func (r *Rabbit) Shutdown() error {
 	r.close()
 
 	if err := r.channel.Cancel("", true); err != nil {
-		return fmt.Errorf("consumer cancel failed: %s", err)
+		return fmt.Errorf("consumer cancel failed: %w", err)
 	}
 
 	if err := r.conn.Close(); err != nil {
-		return fmt.Errorf("AMQP connection close error: %s", err)
+		return fmt.Errorf("AMQP connection close error: %w", err)
 	}
 
 	logrus.Infof("AMQP shutdown")
@@ -145,6 +145,8 @@ func (r *Rabbit) connect() error {
 	if err != nil {
 		return fmt.Errorf("open channel failed: %w", err)
 	}
+
+	logrus.Info("successfully connect")
 
 	return nil
 }

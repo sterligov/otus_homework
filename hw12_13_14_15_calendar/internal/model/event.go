@@ -14,6 +14,7 @@ type Event struct {
 	StartDate        time.Time
 	EndDate          time.Time
 	NotificationDate time.Time
+	IsNotified       byte
 }
 
 func ToEvent(e storage.Event) Event {
@@ -25,6 +26,7 @@ func ToEvent(e storage.Event) Event {
 		StartDate:        e.StartDate,
 		EndDate:          e.EndDate,
 		NotificationDate: e.NotificationDate,
+		IsNotified:       e.IsNotified,
 	}
 }
 
@@ -37,6 +39,7 @@ func FromEvent(e Event) storage.Event {
 		StartDate:        e.StartDate,
 		EndDate:          e.EndDate,
 		NotificationDate: e.NotificationDate,
+		IsNotified:       e.IsNotified,
 	}
 }
 
